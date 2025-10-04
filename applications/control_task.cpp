@@ -50,10 +50,10 @@ extern "C" void control_task()
         Vy = remote.ch_lh * max_speed;  // 左右
 
         if (fabs(remote.ch_rv) > 0.1f) {
-          Wz = 2.0f;  // 左转
+          Wz = 3.0f;  // 左转
         }
         else if (fabs(remote.ch_rh) > 0.1f) {
-          Wz = -2.0f;  // 右转
+          Wz = -3.0f;  // 右转
         }
         else {
           Wz = 0.0f;
@@ -70,10 +70,10 @@ extern "C" void control_task()
         rpm3 = w3 * 60.0f / (2.0f * 3.14f);
         rpm4 = w4 * 60.0f / (2.0f * 3.14f);
 
-        motor1_pid_speed.calc(0.01*rpm2, motor_3508_1.speed);
-        motor2_pid_speed.calc(0.01*rpm1, motor_3508_2.speed);
-        motor3_pid_speed.calc(0.01*rpm4, motor_3508_3.speed);
-        motor4_pid_speed.calc(0.01 * rpm3, motor_3508_4.speed);
+        motor1_pid_speed.calc(0.02 * rpm2, motor_3508_1.speed);
+        motor2_pid_speed.calc(0.02 * rpm1, motor_3508_2.speed);
+        motor3_pid_speed.calc(0.02 * rpm4, motor_3508_3.speed);
+        motor4_pid_speed.calc(0.02 * rpm3, motor_3508_4.speed);
         motor_3508_1.cmd(motor1_pid_speed.out);
         motor_3508_2.cmd(motor2_pid_speed.out);
         motor_3508_3.cmd(motor3_pid_speed.out);

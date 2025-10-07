@@ -10,10 +10,14 @@ extern sp::RM_Motor motor_3508_1;
 extern sp::RM_Motor motor_3508_2;
 extern sp::RM_Motor motor_3508_3;
 extern sp::RM_Motor motor_3508_4;
+extern float g_P_in;
+extern float g_P_real;
+extern float P_max;
+
 extern "C" void plot_task()
 {
   while (true) {
-    plotter.plot(motor_3508_1.speed, motor_3508_2.speed, motor_3508_3.speed, motor_3508_4.speed);
+    plotter.plot(g_P_in, g_P_real, P_max);
     osDelay(10);  // 100Hz
   }
 }

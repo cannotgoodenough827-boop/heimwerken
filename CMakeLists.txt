@@ -58,7 +58,11 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     sp_middleware/io/can/can.cpp
     sp_middleware/io/plotter/plotter.cpp
     sp_middleware/motor/rm_motor/rm_motor.cpp
+    sp_middleware/motor/super_cap/super_cap.cpp
     sp_middleware/tools/math_tools/math_tools.cpp
+    applications/uart_task.cpp 
+    sp_middleware/referee/pm02/pm02.cpp 
+    sp_middleware/tools/crc/crc.cpp 
 )
 
 # Add include paths

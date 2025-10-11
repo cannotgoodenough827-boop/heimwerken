@@ -1,6 +1,6 @@
 #include "cmsis_os.h"
 #include "io/buzzer/buzzer.hpp"
-
+constexpr int MOTOR_TIMEOUT = 500;  // 电机离线时间阈值, 单位: ms
 // C板
 sp::Buzzer buzzer(&htim4, TIM_CHANNEL_3, 84e6);
 

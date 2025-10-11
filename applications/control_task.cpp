@@ -9,10 +9,11 @@
 constexpr int MOTOR_NUM = 4;
 
 sp::DBus remote(&huart3);                            // 遥控器
-sp::SuperCap super_cap(sp::SuperCapMode::AUTOMODE);  // 超级电容
+sp::SuperCap super_cap(sp::SuperCapMode::AUTOMODE);  // 超级电容,初始自动模式
+sp::PM02 pm02(&huart6);                              // 裁判系统
 sp::CAN can1(&hcan1);
 sp::CAN can2(&hcan2);
-sp::PM02 pm02(&huart6);
+
 sp::RM_Motor motor_3508_1(1, sp::RM_Motors::M3508, 14.9f);
 sp::RM_Motor motor_3508_2(2, sp::RM_Motors::M3508, 14.9f);
 sp::RM_Motor motor_3508_3(3, sp::RM_Motors::M3508, 14.9f);
@@ -27,13 +28,13 @@ const float Lx = 0.185f;  // 底盘中心到轮子的X方向距离 (m)
 const float Ly = 0.165f;  // 底盘中心到轮子的Y方向距离 (m)
 const float R = 0.076f;   // 轮子半径 (m)
 
-float max_speed = 2.75f;  //最大速度 (m/s)
+float max_speed = 2.7f;  //最大速度 (m/s)
 
 // 功率限制相关参数
-float P_max = 80;  // 最大功率（单位：W）
-float K1 = 4.35f;
-float K2 = 0.008f;
-float K3 = 3.9f;
+float P_max =  pm02.robot_status.chassis_power_limit;  // 最大功率（单位：W）
+float K1 = 6.85f;
+float K2 = 0.008299f;
+float K3 = 6.6f;
 float g_P_in;
 float g_P_real;
 
@@ -54,8 +55,6 @@ void power_limit(float * tau, float * omega, uint8_t motor_num, float P_max)
   g_P_real = super_cap.power_in - super_cap.power_out;  // 实际功率（单位：W）
   //功率控制
   if (g_P_in > P_max) {
-    // P_max += 30;  //加上超级电容的能量
-
     float A = 2 * K1 * sum_tau2;
     float B = sum_tau_omega;
     float C = K2 * sum_omega2 + K3 - P_max;
@@ -66,7 +65,7 @@ void power_limit(float * tau, float * omega, uint8_t motor_num, float P_max)
       K_scale = (-B + sqrtf(discriminant)) / A;
     }
     else {
-      //  fallback 保证功率限制
+      
       K_scale = P_max / (g_P_in + 1e-6f);
     }
 
@@ -79,9 +78,82 @@ void power_limit(float * tau, float * omega, uint8_t motor_num, float P_max)
   }
 }
 
+void power_limit2(float * tau, float * omega, uint8_t motor_num, float P_max)
+{
+  float sum_tau_omega = 0.0f;
+  float sum_tau2 = 0.0f;
+  float sum_omega2 = 0.0f;
+
+  for (int i = 0; i < motor_num; i++) {
+    sum_tau_omega += tau[i] * omega[i];
+    sum_tau2 += tau[i] * tau[i];
+    sum_omega2 += omega[i] * omega[i];
+  }
+
+  float P_in = sum_tau_omega + K1 * sum_tau2 + K2 * sum_omega2 + K3;  //W
+  g_P_in = P_in;
+  g_P_real = super_cap.power_in - super_cap.power_out;  // 实际功率（单位：W）
+  //功率控制
+  if (g_P_in >= P_max && pm02.power_heat.buffer_energy>0.0f) {
+    super_cap.set_mode(sp::SuperCapMode::DISCHARGE);
+    P_max = 120;  //加上超级电容的能量p 
+    float A = 2 * K1 * sum_tau2;
+    float B = sum_tau_omega;
+    float C = K2 * sum_omega2 + K3 - P_max;
+    float discriminant = B * B - 4 * K1 * sum_tau2 * C;
+    float K_scale = 1.0f;
+    if (discriminant > 0 && A != 0) {
+      K_scale = (-B + sqrtf(discriminant)) / A;
+    }
+    if (K_scale > 1.0f) K_scale = 1.0f;
+    if (K_scale < -1.0f) K_scale = -1.0f;
+
+    for (int i = 0; i < motor_num; i++) {
+      tau[i] *= K_scale;
+    }
+  }
+  // else if (g_P_in < P_max ){
+  //   super_cap.set_mode(sp::SuperCapMode::AUTOMODE);
+  //   P_max = pm02.robot_status.chassis_power_limit;  
+  //   float A = 2 * K1 * sum_tau2;
+  //   float B = sum_tau_omega;
+  //   float C = K2 * sum_omega2 + K3 - P_max;
+  //   float discriminant = B * B - 4 * K1 * sum_tau2 * C;
+  //   float K_scale = 1.0f;
+  //   if (discriminant > 0 && A != 0) {
+  //     K_scale = (-B + sqrtf(discriminant)) / A;
+  //   }
+  //   if (K_scale > 1.0f) K_scale = 1.0f;
+  //   if (K_scale < -1.0f) K_scale = -1.0f;
+
+  //   for (int i = 0; i < motor_num; i++) {
+  //     tau[i] *= K_scale;
+  //   }
+  // }
+  else if (g_P_in < P_max||pm02.power_heat.buffer_energy<=0.0f){
+    super_cap.set_mode(sp::SuperCapMode::AUTOMODE);
+    P_max = 70;  
+    float A = 2 * K1 * sum_tau2;
+    float B = sum_tau_omega;
+    float C = K2 * sum_omega2 + K3 - P_max;
+    float discriminant = B * B - 4 * K1 * sum_tau2 * C;
+    float K_scale = 1.0f;
+    if (discriminant > 0 && A != 0) {
+      K_scale = (-B + sqrtf(discriminant)) / A;
+    }
+    if (K_scale > 1.0f) K_scale = 1.0f;
+    if (K_scale < -1.0f) K_scale = -1.0f;
+
+    for (int i = 0; i < motor_num; i++) {
+      tau[i] *= K_scale;
+    }
+  }
+}
+
 extern "C" void control_task()
 {
   remote.request();
+  pm02.request();
   can2.config();
   can2.start();
 
@@ -89,31 +161,21 @@ extern "C" void control_task()
 
   while (true) {
     switch (remote.sw_r) {
-      case sp::DBusSwitchMode::UP:
-        // motor_3508_1.cmd(0.0f);
-        // motor_3508_2.cmd(0.0f);
-        // motor_3508_3.cmd(0.0f);
-        // motor_3508_4.cmd(0.0f);
-        // sp::SuperCapMode::DISCHARGE;
-
-        break;
-
-      case sp::DBusSwitchMode::MID: {
+      case sp::DBusSwitchMode::UP: {
+        super_cap.set_mode(sp::SuperCapMode::DISCHARGE);
         float w1 = 0.0f, w2 = 0.0f, w3 = 0.0f, w4 = 0.0f;
-
+        max_speed = 4.0f;
         Vx = remote.ch_lv * max_speed;
         Vy = remote.ch_lh * max_speed;
-        Wz = remote.ch_rh * 2.0f;
         if (fabs(remote.ch_rv) > 0.1f) {
-          Wz = remote.ch_rv * 6.0f;  // 左转
+          Wz = remote.ch_rv * 10.0f;  // 左转
         }
         else if (fabs(remote.ch_rh) > 0.1f) {
-          Wz = remote.ch_rh * 6.0f;  // 右转
+          Wz = remote.ch_rh * 10.0f;  // 右转
         }
         else {
           Wz = 0.0f;
         }
-
         // 麦轮速度解算
         w1 = (-Vx + Vy + Wz * (Lx + Ly)) / R;  // 左前 2
         w2 = (-Vx - Vy + Wz * (Lx + Ly)) / R;  // 右前 1
@@ -136,9 +198,53 @@ extern "C" void control_task()
         float omega[MOTOR_NUM] = {
           motor_3508_1.speed, motor_3508_2.speed, motor_3508_3.speed, motor_3508_4.speed};
 
-        // // 功率计算
-        // power_limit(tau, omega, MOTOR_NUM, pm02.robot_status.chassis_power_limit);
-        power_limit(tau, omega, MOTOR_NUM, 80.0f);
+       
+        power_limit2(tau, omega, MOTOR_NUM, 80);
+
+        // 更新命令
+        motor_3508_1.cmd(tau[0]);
+        motor_3508_2.cmd(tau[1]);
+        motor_3508_3.cmd(tau[2]);
+        motor_3508_4.cmd(tau[3]);
+
+        break;
+      }
+      case sp::DBusSwitchMode::MID: {
+        float w1 = 0.0f, w2 = 0.0f, w3 = 0.0f, w4 = 0.0f;
+
+        Vx = remote.ch_lv * max_speed;
+        Vy = remote.ch_lh * max_speed;
+        Wz = remote.ch_rh * 2.0f;
+        if (fabs(remote.ch_rv) > 0.1f) {
+          Wz = remote.ch_rv * 2.0f;  // 左转
+        }
+        else if (fabs(remote.ch_rh) > 0.1f) {
+          Wz = remote.ch_rh * 2.0f;  // 右转
+        }
+        else {
+          Wz = 0.0f;
+        }
+
+        // 麦轮速度解算
+        w1 = (-Vx + Vy + Wz * (Lx + Ly)) / R;  // 左前 2
+        w2 = (-Vx - Vy + Wz * (Lx + Ly)) / R;  // 右前 1
+        w3 = (Vx - Vy + Wz * (Lx + Ly)) / R;   // 右后 4
+        w4 = (Vx + Vy + Wz * (Lx + Ly)) / R;   // 左后 3
+
+        // PID 计算
+        motor1_pid_speed.calc(w2, motor_3508_1.speed);
+        motor2_pid_speed.calc(w1, motor_3508_2.speed);
+        motor3_pid_speed.calc(w4, motor_3508_3.speed);
+        motor4_pid_speed.calc(w3, motor_3508_4.speed);
+      
+
+        float tau[MOTOR_NUM] = {
+          motor1_pid_speed.out, motor2_pid_speed.out, motor3_pid_speed.out, motor4_pid_speed.out};
+        //电机实时转矩
+        float omega[MOTOR_NUM] = {
+          motor_3508_1.speed, motor_3508_2.speed, motor_3508_3.speed, motor_3508_4.speed};
+
+        power_limit(tau, omega, MOTOR_NUM, 80);
 
         // 更新命令
         motor_3508_1.cmd(tau[0]);
@@ -149,7 +255,7 @@ extern "C" void control_task()
       }
       // 右下拨杆：电机失能
       case sp::DBusSwitchMode::DOWN:
-        // sp::SuperCapMode::AUTOMODE;
+      //  super_cap.set_mode(sp::SuperCapMode::DISOUTPUT);
         motor_3508_1.cmd(0.0f);
         motor_3508_2.cmd(0.0f);
         motor_3508_3.cmd(0.0f);

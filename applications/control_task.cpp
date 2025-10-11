@@ -32,9 +32,9 @@ float max_speed = 2.7f;  //最大速度 (m/s)
 
 // 功率限制相关参数
 float P_max =  pm02.robot_status.chassis_power_limit;  // 最大功率（单位：W）
-float K1 = 6.85f;
+float K1 = 4.85f;
 float K2 = 0.008299f;
-float K3 = 6.6f;
+float K3 = 3.5f;
 float g_P_in;
 float g_P_real;
 
@@ -199,7 +199,7 @@ extern "C" void control_task()
           motor_3508_1.speed, motor_3508_2.speed, motor_3508_3.speed, motor_3508_4.speed};
 
        
-        power_limit2(tau, omega, MOTOR_NUM, 80);
+        power_limit(tau, omega, MOTOR_NUM, 80);
 
         // 更新命令
         motor_3508_1.cmd(tau[0]);

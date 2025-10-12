@@ -31,10 +31,10 @@ const float R = 0.076f;   // 轮子半径 (m)
 float max_speed = 2.7f;  //最大速度 (m/s)
 
 // 功率限制相关参数
-float P_max = pm02.robot_status.chassis_power_limit;  // 最大功率（单位：W）//可以注释掉
-float K1 = 2.65f;
-float K2 = 0.009999f;
-float K3 = 1.0f;
+float P_max = pm02.robot_status.chassis_power_limit;  // 最大功率（单位：W）
+const float K1 = 1.99f;
+const float K2 = 0.008999f;
+const float K3 = 1.0f;
 float g_P_in;
 float g_P_real;
 
@@ -50,7 +50,7 @@ void power_limit(float * tau, float * omega, uint8_t motor_num, float P_max)
     sum_omega2 += omega[i] * omega[i];
   }
 
-  float P_in = sum_tau_omega + K1 * sum_tau2 + K2 * sum_omega2 + K3;  //W
+  float P_in = sum_tau_omega + K1 * sum_tau2 + K2 * sum_omega2 + K3;  //预测功率W
   g_P_in = P_in;
   g_P_real = super_cap.power_in - super_cap.power_out;  // 实际功率（单位：W）
   //功率控制
@@ -79,7 +79,6 @@ void power_limit(float * tau, float * omega, uint8_t motor_num, float P_max)
 
 void power_limit2(float * tau, float * omega, uint8_t motor_num, float chassis_max)
 {
-  static sp::SuperCapMode mode_first = sp::SuperCapMode::AUTOMODE;  //初始状态
   float sum_tau_omega = 0.0f;
   float sum_tau2 = 0.0f;
   float sum_omega2 = 0.0f;
@@ -90,41 +89,29 @@ void power_limit2(float * tau, float * omega, uint8_t motor_num, float chassis_m
   }
   float P_in = sum_tau_omega + K1 * sum_tau2 + K2 * sum_omega2 + K3;  //W
   g_P_in = P_in;
+  // 1. 滤波P_in
+  static float P_in_filtered = 0.0f;
+  const float alpha_Pin = 0.2f;
+  P_in_filtered = alpha_Pin * P_in + (1 - alpha_Pin) * P_in_filtered;
   g_P_real = super_cap.power_in - super_cap.power_out;  // 实际功率（单位：W）
-  //功率控制
-  switch (mode_first) {
-    case sp::SuperCapMode::AUTOMODE:
-      if ((g_P_in > chassis_max) && (pm02.power_heat.buffer_energy > 4.0f)) {
-        super_cap.set_mode(sp::SuperCapMode::DISCHARGE);
-        mode_first = sp::SuperCapMode::DISCHARGE;
-      }
-      break;
-    case sp::SuperCapMode::DISCHARGE:
-      if ((P_in < (chassis_max - 20.0f)) || (pm02.power_heat.buffer_energy <= 4.0f)) {
-        super_cap.set_mode(sp::SuperCapMode::AUTOMODE);
-        mode_first = sp::SuperCapMode::AUTOMODE;
-      }
-      break;
-    default:
-      super_cap.set_mode(sp::SuperCapMode::AUTOMODE);
-      mode_first = sp::SuperCapMode::AUTOMODE;
-      break;
 
-      // case sp::SuperCapMode::DISOUTPUT:
-      //   if ((g_P_in > chassis_max) && (pm02.power_heat.buffer_energy > 10.0f)) {
-      //     super_cap.set_mode(sp::SuperCapMode::AUTOMODE);
-      //     mode_first = sp::SuperCapMode::AUTOMODE;
-      //   }
-      //   break;
-  }
-  float P_max_effective ;
-  if (mode_first == sp::SuperCapMode::DISCHARGE) {
-    P_max_effective = 120.0f;
-  }
+  const float E_min = 10.0f;
+  const float E_max = 30.0f;
+  float energy = pm02.power_heat.buffer_energy;
+
+  float target_Pmax;
+  if (energy <= E_min) target_Pmax = 70.0f;
+  else if (energy >= E_max) target_Pmax = 120.0f;
   else {
-    P_max_effective = 70.0f;
+    float ratio = (energy - E_min) / (E_max - E_min);
+    target_Pmax = 70.0f + ratio * (120.0f - 70.0f);
   }
-  // 执行功率限制：只有当计算功率超过当前模式下的“有效功率上限”时，才进行缩放
+
+  // 3. 滤波功率上限
+  static float P_max_effective = 70.0f;
+  const float alpha_P = 0.1f;
+  P_max_effective = alpha_P * target_Pmax + (1 - alpha_P) * P_max_effective;
+  //功率限制
   if (P_in > P_max_effective) {
     float a = K1 * sum_tau2;
     float b = sum_tau_omega;
@@ -160,16 +147,15 @@ extern "C" void control_task()
   while (true) {
     switch (remote.sw_r) {
       case sp::DBusSwitchMode::UP: {
-        // super_cap.set_mode(sp::SuperCapMode::DISCHARGE);
         float w1 = 0.0f, w2 = 0.0f, w3 = 0.0f, w4 = 0.0f;
         max_speed = 4.0f;
         Vx = remote.ch_lh * max_speed;
         Vy = remote.ch_lv * max_speed;
         if (fabs(remote.ch_rv) > 0.1f) {
-          Wz = remote.ch_rv * 15.0f;  // 左转
+          Wz = remote.ch_rv * 10.0f;  // 左转
         }
         else if (fabs(remote.ch_rh) > 0.1f) {
-          Wz = remote.ch_rh * 15.0f;  // 右转
+          Wz = remote.ch_rh * 10.0f;  // 右转
         }
         else {
           Wz = 0.0f;
@@ -204,9 +190,8 @@ extern "C" void control_task()
       }
       case sp::DBusSwitchMode::MID: {
         float w1 = 0.0f, w2 = 0.0f, w3 = 0.0f, w4 = 0.0f;
-
         Vx = remote.ch_lv * max_speed;
-        Vy = remote.ch_lh * max_speed;
+        Vy = (-remote.ch_lh) * max_speed;
         Wz = remote.ch_rh * 2.0f;
         if (fabs(remote.ch_rv) > 0.1f) {
           Wz = remote.ch_rv * 2.0f;  // 左转
@@ -236,7 +221,7 @@ extern "C" void control_task()
         float omega[MOTOR_NUM] = {
           motor_3508_1.speed, motor_3508_2.speed, motor_3508_3.speed, motor_3508_4.speed};
 
-        power_limit(tau, omega, MOTOR_NUM,pm02.robot_status.chassis_power_limit );
+        power_limit(tau, omega, MOTOR_NUM, pm02.robot_status.chassis_power_limit);
 
         // 更新命令
         motor_3508_1.cmd(tau[0]);
@@ -247,7 +232,7 @@ extern "C" void control_task()
       }
       // 右下拨杆：电机失能
       case sp::DBusSwitchMode::DOWN:
-        //  super_cap.set_mode(sp::SuperCapMode::DISOUTPUT);
+        
         motor_3508_1.cmd(0.0f);
         motor_3508_2.cmd(0.0f);
         motor_3508_3.cmd(0.0f);

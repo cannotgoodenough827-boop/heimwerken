@@ -22,7 +22,7 @@ extern float P_max;
 extern "C" void plot_task()
 {
   while (true) {
-    plotter.plot(g_P_in, g_P_real,  pm02.robot_status.chassis_power_limit, pm02.power_heat.buffer_energy);
+    plotter.plot(g_P_in, g_P_real, pm02.robot_status.chassis_power_limit, pm02.power_heat.buffer_energy);
     osDelay(10);  // 100Hz
   }
 }

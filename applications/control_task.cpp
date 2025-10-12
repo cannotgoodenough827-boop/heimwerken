@@ -31,10 +31,10 @@ const float R = 0.076f;   // 轮子半径 (m)
 float max_speed = 2.7f;  //最大速度 (m/s)
 
 // 功率限制相关参数
-float P_max = pm02.robot_status.chassis_power_limit;  // 最大功率（单位：W）
-float K1 = 4.85f;
-float K2 = 0.008299f;
-float K3 = 3.5f;
+float P_max = pm02.robot_status.chassis_power_limit;  // 最大功率（单位：W）//可以注释掉
+float K1 = 2.25f;
+float K2 = 0.009299f;
+float K3 = -32.0f;
 float g_P_in;
 float g_P_real;
 
@@ -76,9 +76,10 @@ void power_limit(float * tau, float * omega, uint8_t motor_num, float P_max)
     }
   }
 }
-static sp::SuperCapMode mode_first = sp::SuperCapMode::AUTOMODE;  //初始状态
+  
 void power_limit2(float * tau, float * omega, uint8_t motor_num, float chassis_max)
 {
+  static sp::SuperCapMode mode_first = sp::SuperCapMode::AUTOMODE;  //初始状态
   float sum_tau_omega = 0.0f;
   float sum_tau2 = 0.0f;
   float sum_omega2 = 0.0f;
@@ -90,29 +91,31 @@ void power_limit2(float * tau, float * omega, uint8_t motor_num, float chassis_m
 
   float P_in = sum_tau_omega + K1 * sum_tau2 + K2 * sum_omega2 + K3;  //W
   g_P_in = P_in;
-  g_P_real = super_cap.power_in - super_cap.power_out;  // 实际功率（单位：W）
+  g_P_real = super_cap.power_in - super_cap.power_out;              // 实际功率（单位：W）
+
   //功率控制
   switch (mode_first) {
     case sp::SuperCapMode::AUTOMODE:
-      if (g_P_in > chassis_max) {
+      if ((g_P_in > chassis_max) && (pm02.power_heat.buffer_energy > 4.0f)) {
         super_cap.set_mode(sp::SuperCapMode::DISCHARGE);
+        mode_first = sp::SuperCapMode::DISCHARGE;
       }
       break;
     case sp::SuperCapMode::DISCHARGE:
-      if (P_in < (chassis_max - 10.0f) || pm02.power_heat.buffer_energy <= 0.0f) {
+      if ((P_in < (chassis_max-20.0f )) || (pm02.power_heat.buffer_energy <= 4.0f)) {
         super_cap.set_mode(sp::SuperCapMode::AUTOMODE);
         mode_first = sp::SuperCapMode::AUTOMODE;
       }
       break;
   }
-  float P_max_effective;
+  float P_max_effective = 0.0f;
   if (mode_first == sp::SuperCapMode::DISCHARGE) {
     P_max_effective = 120.0f;
   }
   else {
     P_max_effective = 75.0f;
   }
-  // 4. 执行功率限制：只有当计算功率超过当前模式下的“有效功率上限”时，才进行缩放
+  // 执行功率限制：只有当计算功率超过当前模式下的“有效功率上限”时，才进行缩放
   if (P_in > P_max_effective) {
     float a = K1 * sum_tau2;
     float b = sum_tau_omega;
@@ -154,10 +157,10 @@ extern "C" void control_task()
         Vx = remote.ch_lv * max_speed;
         Vy = remote.ch_lh * max_speed;
         if (fabs(remote.ch_rv) > 0.1f) {
-          Wz = remote.ch_rv * 10.0f;  // 左转
+          Wz = remote.ch_rv * 15.0f;  // 左转
         }
         else if (fabs(remote.ch_rh) > 0.1f) {
-          Wz = remote.ch_rh * 10.0f;  // 右转
+          Wz = remote.ch_rh * 15.0f;  // 右转
         }
         else {
           Wz = 0.0f;
@@ -224,7 +227,7 @@ extern "C" void control_task()
         float omega[MOTOR_NUM] = {
           motor_3508_1.speed, motor_3508_2.speed, motor_3508_3.speed, motor_3508_4.speed};
 
-        power_limit(tau, omega, MOTOR_NUM, 80);
+        power_limit(tau, omega, MOTOR_NUM, 120.0f);
 
         // 更新命令
         motor_3508_1.cmd(tau[0]);
@@ -286,7 +289,10 @@ extern "C" void HAL_UART_ErrorCallback(UART_HandleTypeDef * huart)
     pm02.request();
   }
 }
-
+uint32_t motor_3508_1_last_update = 0;
+uint32_t motor_3508_2_last_update = 0;
+uint32_t motor_3508_3_last_update = 0;
+uint32_t motor_3508_4_last_update = 0;
 extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan)
 {
   auto stamp_ms = osKernelSysTick();
@@ -294,11 +300,22 @@ extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan)
   while (HAL_CAN_GetRxFifoFillLevel(hcan, CAN_RX_FIFO0) > 0) {
     if (hcan == &hcan2) {
       can2.recv();
-
-      if (can2.rx_id == motor_3508_1.rx_id) motor_3508_1.read(can2.rx_data, stamp_ms);
-      if (can2.rx_id == motor_3508_2.rx_id) motor_3508_2.read(can2.rx_data, stamp_ms);
-      if (can2.rx_id == motor_3508_3.rx_id) motor_3508_3.read(can2.rx_data, stamp_ms);
-      if (can2.rx_id == motor_3508_4.rx_id) motor_3508_4.read(can2.rx_data, stamp_ms);
+      if (can2.rx_id == motor_3508_1.rx_id) {
+        motor_3508_1.read(can2.rx_data, stamp_ms);
+        motor_3508_1_last_update = stamp_ms;
+      }
+      if (can2.rx_id == motor_3508_2.rx_id) {
+        motor_3508_2.read(can2.rx_data, stamp_ms);
+        motor_3508_2_last_update = stamp_ms;
+      }
+      if (can2.rx_id == motor_3508_3.rx_id) {
+        motor_3508_3.read(can2.rx_data, stamp_ms);
+        motor_3508_3_last_update = stamp_ms;
+      }
+      if (can2.rx_id == motor_3508_4.rx_id) {
+        motor_3508_4.read(can2.rx_data, stamp_ms);
+        motor_3508_4_last_update = stamp_ms;
+      }
       if (can2.rx_id == super_cap.rx_id) super_cap.read(can2.rx_data, stamp_ms);
     }
   }

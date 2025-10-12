@@ -6,7 +6,11 @@ sp::Buzzer buzzer(&htim4, TIM_CHANNEL_3, 84e6);
 
 // 达妙
 // sp::Buzzer buzzer(&htim12, TIM_CHANNEL_2, 240e6);
-
+// 示例电机的上次更新时间（实际中你应该在CAN接收回调里更新这些）
+extern uint32_t motor_3508_1_last_update;
+extern uint32_t motor_3508_2_last_update;
+extern uint32_t motor_3508_3_last_update;
+extern uint32_t motor_3508_4_last_update;
 void buzzer_power_on()
 {
   buzzer.set(5000, 0.1);
@@ -44,6 +48,8 @@ void buzzer_error2()
   osDelay(600);
   buzzer.stop();
 }
+// 当前系统时间
+static inline uint32_t get_time_ms() { return osKernelSysTick(); }
 
 extern "C" void buzzer_task()
 {
@@ -55,6 +61,22 @@ extern "C" void buzzer_task()
   osDelay(1000);
   buzzer_error2();  // 模拟错误2
   while (true) {
+    uint32_t now = get_time_ms();
+
+    bool motor_offline = false;
+
+    if (now - motor_3508_1_last_update > MOTOR_TIMEOUT) motor_offline = true;
+    if (now - motor_3508_2_last_update > MOTOR_TIMEOUT) motor_offline = true;
+    if (now - motor_3508_3_last_update > MOTOR_TIMEOUT) motor_offline = true;
+    if (now - motor_3508_4_last_update > MOTOR_TIMEOUT) motor_offline = true;
+
+    if (motor_offline) {
+      buzzer_error1();  // 电机离线报警
+      osDelay(1000);    // 报警节奏间隔，防止连续响
+    }
+    else {
+      osDelay(100);  // 定期检查
+    }
     osDelay(100);
   }
 }

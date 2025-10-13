@@ -100,8 +100,10 @@ void power_limit2(float * tau, float * omega, uint8_t motor_num, float chassis_m
   float energy = pm02.power_heat.buffer_energy;
 
   float target_Pmax;
-  if (energy <= E_min) target_Pmax = 70.0f;
-  else if (energy >= E_max) target_Pmax = 120.0f;
+  if (energy <= E_min)
+    target_Pmax = 70.0f;
+  else if (energy >= E_max)
+    target_Pmax = 120.0f;
   else {
     float ratio = (energy - E_min) / (E_max - E_min);
     target_Pmax = 70.0f + ratio * (120.0f - 70.0f);
@@ -149,8 +151,8 @@ extern "C" void control_task()
       case sp::DBusSwitchMode::UP: {
         float w1 = 0.0f, w2 = 0.0f, w3 = 0.0f, w4 = 0.0f;
         max_speed = 4.0f;
-        Vx = remote.ch_lh * max_speed;
-        Vy = remote.ch_lv * max_speed;
+        Vx = remote.ch_lv * max_speed;
+        Vy = remote.ch_lh * max_speed;
         if (fabs(remote.ch_rv) > 0.1f) {
           Wz = remote.ch_rv * 10.0f;  // 左转
         }
@@ -191,7 +193,7 @@ extern "C" void control_task()
       case sp::DBusSwitchMode::MID: {
         float w1 = 0.0f, w2 = 0.0f, w3 = 0.0f, w4 = 0.0f;
         Vx = remote.ch_lv * max_speed;
-        Vy = (-remote.ch_lh) * max_speed;
+        Vy = remote.ch_lh * max_speed;
         Wz = remote.ch_rh * 2.0f;
         if (fabs(remote.ch_rv) > 0.1f) {
           Wz = remote.ch_rv * 2.0f;  // 左转
@@ -222,7 +224,6 @@ extern "C" void control_task()
           motor_3508_1.speed, motor_3508_2.speed, motor_3508_3.speed, motor_3508_4.speed};
 
         power_limit(tau, omega, MOTOR_NUM, pm02.robot_status.chassis_power_limit);
-
         // 更新命令
         motor_3508_1.cmd(tau[0]);
         motor_3508_2.cmd(tau[1]);
@@ -232,7 +233,7 @@ extern "C" void control_task()
       }
       // 右下拨杆：电机失能
       case sp::DBusSwitchMode::DOWN:
-        
+
         motor_3508_1.cmd(0.0f);
         motor_3508_2.cmd(0.0f);
         motor_3508_3.cmd(0.0f);

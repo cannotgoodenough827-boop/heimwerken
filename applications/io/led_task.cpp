@@ -3,7 +3,7 @@
 
 sp::LED led(&htim5);
 
-extern "C" void LED_Task()
+extern "C" void led_task()
 {
   led.start();
 

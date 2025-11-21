@@ -45,11 +45,15 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
-    applications/buzzer_task.cpp 
-    applications/led_task.cpp
-    applications/servo_task.cpp
-    applications/control_task.cpp
+    applications/io/buzzer_task.cpp 
+    applications/io/led_task.cpp
+    applications/io/servo_task.cpp
+    applications/chassis_controller/chassis_task.cpp
+    applications/chassis_controller/mode.cpp
     applications/plotter_task.cpp
+    applications/can/can.cpp
+    applications/uart/uart_task.cpp
+    applications/can/can_recv.cpp
     sp_middleware/io/buzzer/buzzer.cpp 
     sp_middleware/io/led/led.cpp
     sp_middleware/io/dbus/dbus.cpp
@@ -60,7 +64,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     sp_middleware/motor/rm_motor/rm_motor.cpp
     sp_middleware/motor/super_cap/super_cap.cpp
     sp_middleware/tools/math_tools/math_tools.cpp
-    
+    sp_middleware/tools/mecanum/mecanum.cpp
     sp_middleware/referee/pm02/pm02.cpp 
     sp_middleware/tools/crc/crc.cpp 
 )

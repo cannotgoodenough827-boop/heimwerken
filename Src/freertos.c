@@ -129,7 +129,7 @@ void MX_FREERTOS_Init(void) {
   chassisTaskHandle = osThreadCreate(osThread(chassisTask), NULL);
 
   /* definition and creation of uart_Task */
-  osThreadDef(uart_Task, uart_task, osPriorityIdle, 0, 128);
+  osThreadDef(uart_Task, uart_task, osPriorityAboveNormal, 0, 128);
   uart_TaskHandle = osThreadCreate(osThread(uart_Task), NULL);
 
   /* definition and creation of ControlTask */

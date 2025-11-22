@@ -39,10 +39,7 @@ extern "C" void Chassis_task()
 {
   while (1) {
     chassis_mode_control();
-    // if(Chassis_Mode == CHASSIS_SPIN)
-    //     {
-
-    //     }
+    
     if (Chassis_Mode == CHASSIS_MOVE) {
       remote_speedcontrol_follow();
     }

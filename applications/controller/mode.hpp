@@ -1,5 +1,6 @@
 #ifndef MODE_HPP
 #define MODE_HPP
+#include "HERO_SELECTION.hpp"
 
 typedef enum
 {

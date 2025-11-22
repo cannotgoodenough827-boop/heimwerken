@@ -14,9 +14,9 @@ Wheel_Torque chassis_pid_cal(float lf, float lr, float rf, float rr);
 
 extern "C" void control_task()
 {
-  osDelay(500);
-  can1.config();
-  can1.start();
+  // osDelay(500);
+  // can1.config();
+  // can1.start();
   can2.config();
   can2.start();
   while (1) {

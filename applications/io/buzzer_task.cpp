@@ -4,9 +4,6 @@ constexpr int MOTOR_TIMEOUT = 500;  // 电机离线时间阈值, 单位: ms
 // C板
 sp::Buzzer buzzer(&htim4, TIM_CHANNEL_3, 84e6);
 
-// 达妙
-// sp::Buzzer buzzer(&htim12, TIM_CHANNEL_2, 240e6);
-// 示例电机的上次更新时间（实际中你应该在CAN接收回调里更新这些）
 
 void buzzer_power_on()
 {

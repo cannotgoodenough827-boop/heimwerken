@@ -51,6 +51,8 @@ osThreadId defaultTaskHandle;
 osThreadId ledTaskHandle;
 osThreadId buzzerTaskHandle;
 osThreadId chassisTaskHandle;
+osThreadId uart_TaskHandle;
+osThreadId ControlTaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -58,9 +60,11 @@ osThreadId chassisTaskHandle;
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
-extern void led_task(void const * argument);
-extern void buzzer_task(void const * argument);
-extern void Chassis_task(void const * argument);
+void led_task(void const * argument);
+void buzzer_task(void const * argument);
+void Chassis_task(void const * argument);
+void uart_task(void const * argument);
+void control_task(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -124,6 +128,14 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(chassisTask, Chassis_task, osPriorityAboveNormal, 0, 512);
   chassisTaskHandle = osThreadCreate(osThread(chassisTask), NULL);
 
+  /* definition and creation of uart_Task */
+  osThreadDef(uart_Task, uart_task, osPriorityIdle, 0, 128);
+  uart_TaskHandle = osThreadCreate(osThread(uart_Task), NULL);
+
+  /* definition and creation of ControlTask */
+  osThreadDef(ControlTask, control_task, osPriorityAboveNormal, 0, 1024);
+  ControlTaskHandle = osThreadCreate(osThread(ControlTask), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -148,6 +160,96 @@ void StartDefaultTask(void const * argument)
     osDelay(1);
   }
   /* USER CODE END StartDefaultTask */
+}
+
+/* USER CODE BEGIN Header_led_task */
+/**
+* @brief Function implementing the ledTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_led_task */
+__weak void led_task(void const * argument)
+{
+  /* USER CODE BEGIN led_task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END led_task */
+}
+
+/* USER CODE BEGIN Header_buzzer_task */
+/**
+* @brief Function implementing the buzzerTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_buzzer_task */
+__weak void buzzer_task(void const * argument)
+{
+  /* USER CODE BEGIN buzzer_task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END buzzer_task */
+}
+
+/* USER CODE BEGIN Header_Chassis_task */
+/**
+* @brief Function implementing the chassisTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Chassis_task */
+__weak void Chassis_task(void const * argument)
+{
+  /* USER CODE BEGIN Chassis_task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END Chassis_task */
+}
+
+/* USER CODE BEGIN Header_uart_task */
+/**
+* @brief Function implementing the uart_Task thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_uart_task */
+__weak void uart_task(void const * argument)
+{
+  /* USER CODE BEGIN uart_task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END uart_task */
+}
+
+/* USER CODE BEGIN Header_control_task */
+/**
+* @brief Function implementing the ControlTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_control_task */
+__weak void control_task(void const * argument)
+{
+  /* USER CODE BEGIN control_task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END control_task */
 }
 
 /* Private application code --------------------------------------------------*/

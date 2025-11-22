@@ -2,8 +2,8 @@
 
 #include "HERO_SELECTION.hpp"
 #include "can.hpp"
-#include "chassis_controller/chassis_task.hpp"
 #include "cmsis_os.h"
+#include "controller/chassis_controller/chassis_task.hpp"
 
 extern "C" {
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan)

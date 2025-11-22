@@ -18,6 +18,8 @@ inline sp::RM_Motor wheel_lr(4, sp::RM_Motors::M3508, RADUCTION_RATIO);  // left
 inline sp::RM_Motor wheel_rf(2, sp::RM_Motors::M3508, RADUCTION_RATIO);  // right front
 inline sp::RM_Motor wheel_rr(3, sp::RM_Motors::M3508, RADUCTION_RATIO);  // right rear
 
+// inline sp::PID chassis_follow_wz_pid(0.001f, 8.5f, 0.0f, 0.7f, 5.0f, 3.0f, 0.5f);
+
 //小陀螺角速度rad/s
 constexpr float SPIN_W = 10.0f;  //大约112w
 //遥控器平移最大速度
@@ -45,5 +47,10 @@ typedef struct
   float rf;
   float rr;
 } Wheel_Torque;
+
+//----对外调试
+extern sp::Mecanum chassis;
+extern Wheel_Torque wheel_give_torque;
+extern Wheel_Speed chassis_target_speed;
 
 #endif

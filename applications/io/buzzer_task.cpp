@@ -19,8 +19,8 @@ void buzzer_power_on()
     osDelay(100);
   }
 }
-void buzzer_error1()
 
+void buzzer_error1()
 {
   int freq[3] = {6000, 4000, 6000};  // ¸ßÆµ ¡ú ÖÐÆµ ¡ú ¸ßÆµ
   for (int i = 0; i < 3; i++) {
@@ -56,4 +56,7 @@ extern "C" void buzzer_task()
   buzzer_error1();  // Ä£Äâ´íÎó1
   osDelay(1000);
   buzzer_error2();  // Ä£Äâ´íÎó2
+  while (1) {
+    osDelay(10);
+  }
 }

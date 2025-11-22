@@ -48,12 +48,16 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     applications/io/buzzer_task.cpp 
     applications/io/led_task.cpp
     applications/io/servo_task.cpp
-    applications/chassis_controller/chassis_task.cpp
-    applications/chassis_controller/mode.cpp
+    applications/controller/chassis_controller/chassis_task.cpp
+    applications/controller/control_task.cpp
+    applications/controller/mode.cpp
+    applications/controller/control_task.cpp
+    
+    applications/data_interfaces/can/can_recv.cpp
+    applications/data_interfaces/can/can.cpp
+    applications/data_interfaces/uart/uart_task.cpp
     applications/plotter_task.cpp
-    applications/can/can.cpp
-    applications/uart/uart_task.cpp
-    applications/can/can_recv.cpp
+    
     sp_middleware/io/buzzer/buzzer.cpp 
     sp_middleware/io/led/led.cpp
     sp_middleware/io/dbus/dbus.cpp

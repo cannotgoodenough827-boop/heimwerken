@@ -52,6 +52,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     applications/controller/control_task.cpp
     applications/controller/mode.cpp
     applications/controller/control_task.cpp
+    applications/controller/power_control.cpp
     
     applications/data_interfaces/can/can_recv.cpp
     applications/data_interfaces/can/can.cpp

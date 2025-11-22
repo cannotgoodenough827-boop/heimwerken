@@ -52,5 +52,6 @@ typedef struct
 extern sp::Mecanum chassis;
 extern Wheel_Torque wheel_give_torque;
 extern Wheel_Speed chassis_target_speed;
+extern Wheel_Speed wheel_speed;
 
 #endif

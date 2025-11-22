@@ -5,6 +5,7 @@
 #include "controller/chassis_controller/chassis_task.hpp"
 #include "controller/mode.hpp"
 #include "controller/pids.hpp"
+#include "controller/power_control.hpp"
 #include "data_interfaces/can/can.hpp"
 #include "data_interfaces/can/can_recv.hpp"
 #include "data_interfaces/uart/uart_task.hpp"
@@ -38,6 +39,8 @@ void chassis_control()
   wheel_give_torque = chassis_pid_cal(
     chassis_target_speed.lf, chassis_target_speed.lr, chassis_target_speed.rf,
     chassis_target_speed.rr);
+  chassis_power_control(
+    &wheel_give_torque, &wheel_speed, &chassis_target_speed, infact_Pmax - 3.0f);
   wheel_lf.cmd(wheel_give_torque.lf);
   wheel_lr.cmd(wheel_give_torque.lr);
   wheel_rf.cmd(wheel_give_torque.rf);

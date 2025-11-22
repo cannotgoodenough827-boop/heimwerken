@@ -16,7 +16,7 @@
 #include "tools/pid/pid.hpp"
 
 //功率控制
-float infact_Pmax = 0.0f;
+float infact_Pmax = pm02.robot_status.chassis_power_limit;
 //底盘期望前后旋转速度
 Chassis_Speed chassis_speed = {0.0f, 0.0f, 0.0f};
 //经过偏移修正之后的轮子目标速度
@@ -28,9 +28,6 @@ Wheel_Torque wheel_give_torque = {0.0f, 0.0f, 0.0f, 0.0f};
 
 sp::Mecanum chassis(WHEEL_RADIUS, (CHASSIS_LENGTH / 2), (CHASSIS_WIDTH / 2));
 
-// float remote_move_y = 0.0f;
-// float remote_move_x = 0.0f;
-
 void chassis_control();
 void chassis_mode_control();
 void remote_speedcontrol_follow();
@@ -39,10 +36,11 @@ extern "C" void Chassis_task()
 {
   while (1) {
     chassis_mode_control();
-    
+
     if (Chassis_Mode == CHASSIS_MOVE) {
       remote_speedcontrol_follow();
     }
+
     chassis.calc(chassis_speed.vx, chassis_speed.vy, chassis_speed.wz);
     wheel_speed.lf = wheel_lf.speed;
     wheel_speed.lr = wheel_lr.speed;

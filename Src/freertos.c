@@ -53,6 +53,8 @@ osThreadId buzzerTaskHandle;
 osThreadId chassisTaskHandle;
 osThreadId uart_TaskHandle;
 osThreadId ControlTaskHandle;
+osThreadId gimbalTaskHandle;
+osThreadId imuTaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -65,6 +67,8 @@ void buzzer_task(void const * argument);
 void Chassis_task(void const * argument);
 void uart_task(void const * argument);
 void control_task(void const * argument);
+void gimbal_task(void const * argument);
+void IMU_task(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -135,6 +139,14 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of ControlTask */
   osThreadDef(ControlTask, control_task, osPriorityAboveNormal, 0, 1024);
   ControlTaskHandle = osThreadCreate(osThread(ControlTask), NULL);
+
+  /* definition and creation of gimbalTask */
+  osThreadDef(gimbalTask, gimbal_task, osPriorityAboveNormal, 0, 512);
+  gimbalTaskHandle = osThreadCreate(osThread(gimbalTask), NULL);
+
+  /* definition and creation of imuTask */
+  osThreadDef(imuTask, IMU_task, osPriorityHigh, 0, 1024);
+  imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -250,6 +262,42 @@ __weak void control_task(void const * argument)
     osDelay(1);
   }
   /* USER CODE END control_task */
+}
+
+/* USER CODE BEGIN Header_gimbal_task */
+/**
+* @brief Function implementing the gimbalTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_gimbal_task */
+__weak void gimbal_task(void const * argument)
+{
+  /* USER CODE BEGIN gimbal_task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END gimbal_task */
+}
+
+/* USER CODE BEGIN Header_IMU_task */
+/**
+* @brief Function implementing the imuTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_IMU_task */
+__weak void IMU_task(void const * argument)
+{
+  /* USER CODE BEGIN IMU_task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END IMU_task */
 }
 
 /* Private application code --------------------------------------------------*/

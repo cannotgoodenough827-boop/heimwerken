@@ -3,14 +3,17 @@
 #include "HERO_SELECTION.hpp"
 #include "cmsis_os.h"
 #include "controller/chassis_controller/chassis_task.hpp"
+#include "controller/gimbal_controller/gimbal_task.hpp"
 #include "controller/mode.hpp"
 #include "controller/pids.hpp"
 #include "controller/power_control.hpp"
 #include "data_interfaces/can/can.hpp"
 #include "data_interfaces/can/can_recv.hpp"
 #include "data_interfaces/uart/uart_task.hpp"
+#include "io/imu_task.hpp"
 
 void chassis_control();
+void gimbal_gyro_control();
 Wheel_Torque chassis_pid_cal(float lf, float lr, float rf, float rr);
 
 extern "C" void control_task()
@@ -59,4 +62,25 @@ Wheel_Torque chassis_pid_cal(float lf, float lr, float rf, float rr)
   wheel_given_torque_temp.rf = speed_rf_pid.out;
   wheel_given_torque_temp.rr = speed_rr_pid.out;
   return wheel_given_torque_temp;
+}
+
+void gimbal_control()
+{
+  //云台模式为DOWN
+  if (Gimbal_Mode == GIMBAL_ZERO_FORCE) {
+    yaw_motor.cmd(0.0f);
+  }
+  if (Gimbal_Mode == GIMBAL_GYRO) {
+    gimbal_gyro_control();
+  }
+}
+
+void gimbal_gyro_control()
+{
+  //解算GYRO模式下两轴电流
+  //yaw
+  yaw_pos_pid.calc(yaw_target_angle, imu.yaw);
+  yaw_speed_pid.calc(yaw_pos_pid.out, imu_vyaw_filter);
+  yaw_cmd_torque = sp::limit_max(yaw_speed_pid.out, MAX_4310_TORQUE);
+  yaw_motor.cmd(yaw_cmd_torque);
 }

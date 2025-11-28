@@ -4,6 +4,7 @@
 #include "can.hpp"
 #include "cmsis_os.h"
 #include "controller/chassis_controller/chassis_task.hpp"
+#include "controller/gimbal_controller/gimbal_task.hpp"
 
 extern "C" {
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan)
@@ -22,6 +23,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan)
         wheel_rr.read(can2.rx_data, stamp_ms);
       // else if (can2.rx_id == super_cap.rx_id)
       //   super_cap.read(can2.rx_data, stamp_ms);
+      else if (can2.rx_id == yaw_motor.rx_id)
+        yaw_motor.read(can2.rx_data, stamp_ms);
     }
   }
 }

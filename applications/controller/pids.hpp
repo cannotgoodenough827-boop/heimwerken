@@ -3,9 +3,18 @@
 #include "HERO_SELECTION.hpp"
 #include "tools/pid/pid.hpp"
 
+constexpr float T_CONTROL = 1e-3f;  // 控制周期, 单位: s
+
 inline sp::PID speed_lf_pid(0.001f, 0.3f, 0.0f, 0.0f, 5.859f, 0.5f, 0.15f);
 inline sp::PID speed_lr_pid(0.001f, 0.3f, 0.0f, 0.0f, 5.859f, 0.8f, 0.15f);
 inline sp::PID speed_rf_pid(0.001f, 0.3f, 0.0f, 0.0f, 5.859f, 0.5f, 0.15f);
 inline sp::PID speed_rr_pid(0.001f, 0.3f, 0.0f, 0.0f, 5.859f, 0.5f, 0.15f);
 
+//gimbal pids
+constexpr float MAX_4310_TORQUE = 10.0f;  // 达妙4310电机最大扭矩，单位N.m
+#ifdef HERO_DOG
+inline sp::PID yaw_pos_pid(T_CONTROL, 30.0f, 0.0f, 0.3f, 7, 3, 1.0f, true, false);
+inline sp::PID yaw_speed_pid(
+  T_CONTROL, 2.0f, 0.0f, 0.25f, MAX_4310_TORQUE, MAX_4310_TORQUE / 3.0f, 1.0f, false, false);
+#endif
 #endif  // PIDS_HPP

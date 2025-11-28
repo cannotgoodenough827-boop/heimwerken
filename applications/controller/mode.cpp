@@ -5,7 +5,12 @@
 
 global_mode Global_Mode = ZERO_FORCE;
 global_mode Last_Global_Mode = ZERO_FORCE;
+
 chassis_mode Chassis_Mode;
+
+//定义云台状态机
+gimbal_mode Last_Gimbal_Mode;
+gimbal_mode Gimbal_Mode;
 
 void global_mode_control()
 {

@@ -29,6 +29,7 @@ Wheel_Torque wheel_give_torque = {0.0f, 0.0f, 0.0f, 0.0f};
 sp::Mecanum chassis(WHEEL_RADIUS, (CHASSIS_LENGTH / 2), (CHASSIS_WIDTH / 2));
 
 void chassis_control();
+//chassis_follow,spin下的遥控器/键鼠对应速度
 void chassis_mode_control();
 void remote_speedcontrol_follow();
 
@@ -82,5 +83,5 @@ void remote_speedcontrol_follow()
 {
   chassis_speed.vx = REMOTE_CONTROL_V * remote.ch_lh;
   chassis_speed.vy = -REMOTE_CONTROL_V * remote.ch_lv;
-  chassis_speed.wz = SPIN_W * remote.ch_rh;
+  // chassis_speed.wz = SPIN_W * remote.ch_rh;
 }

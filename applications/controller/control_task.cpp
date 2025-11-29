@@ -17,6 +17,7 @@ uint16_t yaw_enable_num = 0;
 void motor_enable();
 void chassis_control();
 void gimbal_gyro_control();
+void gimbal_encode_control();
 void gimbal_control();
 Wheel_Torque chassis_pid_cal(float lf, float lr, float rf, float rr);
 
@@ -90,6 +91,15 @@ void gimbal_control()
   if (Gimbal_Mode == GIMBAL_GYRO) {
     gimbal_gyro_control();
   }
+}
+
+void gimbal_encode_control()
+{
+  //解算ENCODE模式下两轴电流
+  //yaw
+  yaw_encode_pos_pid.calc(yaw_target_angle, yaw_relative_angle);
+  yaw_encode_speed_pid.calc(yaw_pos_pid.out, imu_vyaw_filter);
+  yaw_motor.cmd(yaw_encode_speed_pid.out);
 }
 
 void gimbal_gyro_control()

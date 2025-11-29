@@ -1,6 +1,7 @@
 #include "chassis_task.hpp"
 
 #include "cmsis_os.h"
+#include "controller/gimbal_controller/gimbal_task.hpp"
 #include "controller/mode.hpp"
 #include "controller/pids.hpp"
 #include "data_interfaces/can/can.hpp"
@@ -32,16 +33,19 @@ void chassis_control();
 //chassis_follow,spin下的遥控器/键鼠对应速度
 void chassis_mode_control();
 void remote_speedcontrol_follow();
+//chassis_follow通用坐标系变至云台系+底盘跟随的函数
+void chassis_coordinate_converter(Chassis_Speed * chassis_speed_given, float yaw_angle);
 
 extern "C" void Chassis_task()
 {
   while (1) {
     chassis_mode_control();
 
-    if (Chassis_Mode == CHASSIS_MOVE) {
+    if (Chassis_Mode == CHASSIS_FOLLOW) {
       remote_speedcontrol_follow();
     }
 
+    chassis_coordinate_converter(&chassis_speed, yaw_relative_angle);
     chassis.calc(chassis_speed.vx, chassis_speed.vy, chassis_speed.wz);
     wheel_speed.lf = wheel_lf.speed;
     wheel_speed.lr = wheel_lr.speed;
@@ -72,7 +76,7 @@ void chassis_mode_control()
         Chassis_Mode = CHASSIS_SPIN;
       }
       else {
-        Chassis_Mode = CHASSIS_MOVE;
+        Chassis_Mode = CHASSIS_FOLLOW;
       }
     }
 #endif
@@ -84,4 +88,16 @@ void remote_speedcontrol_follow()
   chassis_speed.vx = REMOTE_CONTROL_V * remote.ch_lh;
   chassis_speed.vy = -REMOTE_CONTROL_V * remote.ch_lv;
   // chassis_speed.wz = SPIN_W * remote.ch_rh;
+  chassis_follow_wz_pid.calc(0.0f, yaw_relative_angle);  //底盘跟随：设为底盘与yaw轴相对角度为0
+  chassis_speed.wz = -chassis_follow_wz_pid.out;
+}
+
+//chassis_follow通用坐标系变至云台系，解决小陀螺下平移的问题，以及底盘跟随状态下，移动以操作手视角移动
+void chassis_coordinate_converter(Chassis_Speed * chassis_speed_given, float yaw_angle)
+{
+  //底盘解算
+  float vx = chassis_speed_given->vx;
+  float vy = chassis_speed_given->vy;
+  chassis_speed_given->vx = vx * cos(yaw_angle) - vy * sin(yaw_angle);
+  chassis_speed_given->vy = vx * sin(yaw_angle) + vy * cos(yaw_angle);
 }

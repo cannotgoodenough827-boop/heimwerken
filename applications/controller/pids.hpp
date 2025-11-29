@@ -13,8 +13,14 @@ inline sp::PID speed_rr_pid(0.001f, 0.3f, 0.0f, 0.0f, 5.859f, 0.5f, 0.15f);
 //gimbal pids
 constexpr float MAX_4310_TORQUE = 10.0f;  // 达妙4310电机最大扭矩，单位N.m
 #ifdef HERO_DOG
+//位置控制PID
 inline sp::PID yaw_pos_pid(T_CONTROL, 30.0f, 0.0f, 0.3f, 7, 3, 1.0f, true, false);
 inline sp::PID yaw_speed_pid(
   T_CONTROL, 2.0f, 0.0f, 0.25f, MAX_4310_TORQUE, MAX_4310_TORQUE / 3.0f, 1.0f, false, false);
+//初始化PID
+inline sp::PID yaw_encode_pos_pid(T_CONTROL, 10.0f, 0.0f, 0.45f, 3, 1.5, 1.0f, true, false);
+inline sp::PID yaw_encode_speed_pid(
+  T_CONTROL, 1.5f, 0.0f, 0.12f, MAX_4310_TORQUE, MAX_4310_TORQUE / 3.0f, 1.0, false, false);
+
 #endif
 #endif  // PIDS_HPP

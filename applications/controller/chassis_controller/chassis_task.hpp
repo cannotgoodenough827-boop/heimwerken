@@ -7,10 +7,15 @@
 #include "tools/math_tools/math_tools.hpp"
 #include "tools/mecanum/mecanum.hpp"
 #include "tools/pid/pid.hpp"
+
+// -------------------- 控制参数 --------------------
+constexpr float T_CHASSIS = 1e-3f;  // 控制周期, 单位: s
 //底盘
 constexpr float WHEEL_RADIUS = 77e-3f;       // m
 constexpr float CHASSIS_LENGTH = 396.2e-3f;  // m
 constexpr float CHASSIS_WIDTH = 356.47e-3f;  // m
+
+inline sp::PID chassis_follow_wz_pid(T_CHASSIS, 8.5f, 0.0f, 0.7f, 5.0f, 3.0f, 0.5f);
 
 inline sp::SuperCap super_cap(sp::SuperCapMode::AUTOMODE);
 inline sp::RM_Motor wheel_lf(1, sp::RM_Motors::M3508, RADUCTION_RATIO);  // left front

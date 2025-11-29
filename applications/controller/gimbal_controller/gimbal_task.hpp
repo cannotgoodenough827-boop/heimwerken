@@ -18,5 +18,6 @@ inline sp::DM_Motor yaw_motor(0x08, 0x04, 3.141593f, 30.0f, 10.0f);
 // -------------------- ∂‘Õ‚µ˜ ‘ --------------------
 extern float yaw_cmd_torque;
 extern float yaw_target_angle;
+extern float yaw_relative_angle;
 
 #endif  // GIMBAL_TASK_HPP

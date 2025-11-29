@@ -3,6 +3,7 @@
 #include "HERO_SELECTION.hpp"
 #include "cmsis_os.h"
 #include "controller/chassis_controller/chassis_task.hpp"
+#include "controller/detect_task.hpp"
 #include "controller/gimbal_controller/gimbal_task.hpp"
 #include "controller/mode.hpp"
 #include "controller/pids.hpp"
@@ -12,8 +13,11 @@
 #include "data_interfaces/uart/uart_task.hpp"
 #include "io/imu_task.hpp"
 
+uint16_t yaw_enable_num = 0;
+void motor_enable();
 void chassis_control();
 void gimbal_gyro_control();
+void gimbal_control();
 Wheel_Torque chassis_pid_cal(float lf, float lr, float rf, float rr);
 
 extern "C" void control_task()
@@ -23,10 +27,23 @@ extern "C" void control_task()
   // can1.start();
   can2.config();
   can2.start();
+  yaw_motor.write_enable(can2.tx_data);
+  can2.send(yaw_motor.tx_id);
   while (1) {
     global_mode_control();
+    motor_enable();
+
+    if (yaw_motor.error != 1 && yaw_motor.error != 0) {
+      yaw_motor.write_clear_error(can2.tx_data);
+      can2.send(yaw_motor.tx_id);
+      yaw_motor.write_enable(can2.tx_data);
+      can2.send(yaw_motor.tx_id);
+    }
+
     chassis_control();
+    gimbal_control();
     chassis_send();
+    yaw_send();
     osDelay(1);
   }
 }
@@ -83,4 +100,20 @@ void gimbal_gyro_control()
   yaw_speed_pid.calc(yaw_pos_pid.out, imu_vyaw_filter);
   yaw_cmd_torque = sp::limit_max(yaw_speed_pid.out, MAX_4310_TORQUE);
   yaw_motor.cmd(yaw_cmd_torque);
+}
+
+void motor_enable(void)
+{
+  if (yaw_motor.error == 0) {
+    yaw_motor.write_enable(can2.tx_data);
+    can2.send(yaw_motor.tx_id);
+  }
+  if (!yaw_motor_alive) {
+    if (yaw_enable_num == 1000) {
+      yaw_motor.write_enable(can2.tx_data);
+      can2.send(yaw_motor.tx_id);
+      yaw_enable_num = 0;
+    }
+    yaw_enable_num++;
+  }
 }

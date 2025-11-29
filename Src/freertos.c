@@ -55,6 +55,7 @@ osThreadId uart_TaskHandle;
 osThreadId ControlTaskHandle;
 osThreadId gimbalTaskHandle;
 osThreadId imuTaskHandle;
+osThreadId detecttaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -69,6 +70,7 @@ void uart_task(void const * argument);
 void control_task(void const * argument);
 void gimbal_task(void const * argument);
 void IMU_task(void const * argument);
+void detect_task(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -147,6 +149,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of imuTask */
   osThreadDef(imuTask, IMU_task, osPriorityHigh, 0, 1024);
   imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
+
+  /* definition and creation of detecttask */
+  osThreadDef(detecttask, detect_task, osPriorityNormal, 0, 128);
+  detecttaskHandle = osThreadCreate(osThread(detecttask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -298,6 +304,24 @@ __weak void IMU_task(void const * argument)
     osDelay(1);
   }
   /* USER CODE END IMU_task */
+}
+
+/* USER CODE BEGIN Header_detect_task */
+/**
+* @brief Function implementing the detecttask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_detect_task */
+__weak void detect_task(void const * argument)
+{
+  /* USER CODE BEGIN detect_task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END detect_task */
 }
 
 /* Private application code --------------------------------------------------*/

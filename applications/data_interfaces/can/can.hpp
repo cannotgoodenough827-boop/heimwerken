@@ -6,5 +6,6 @@
 inline sp::CAN can2(&hcan2);
 
 void chassis_send();
+void yaw_send();
 
 #endif  // CAN_HPP

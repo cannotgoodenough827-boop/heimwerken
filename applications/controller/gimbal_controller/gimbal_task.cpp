@@ -44,7 +44,7 @@ extern "C" void gimbal_task()
   while (1) {
     //云台电机选择模式
     gimbal_mode_control();
-
+    gimbal_cmd();
     osDelay(1);
   }
 }

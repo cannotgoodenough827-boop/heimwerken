@@ -2,7 +2,7 @@
 #define _DETECT_TASK_HPP_
 #include <stdint.h>
 
-
 extern bool yaw_motor_alive;
+extern bool pitch_motor_alive;
 
-#endif // _DETECT_TASK_HPP_
+#endif  // _DETECT_TASK_HPP_

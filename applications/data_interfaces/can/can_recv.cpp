@@ -21,10 +21,14 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan)
         wheel_rf.read(can2.rx_data, stamp_ms);
       else if (can2.rx_id == wheel_rr.rx_id)
         wheel_rr.read(can2.rx_data, stamp_ms);
-      // else if (can2.rx_id == super_cap.rx_id)
-      //   super_cap.read(can2.rx_data, stamp_ms);
       else if (can2.rx_id == yaw_motor.rx_id)
         yaw_motor.read(can2.rx_data, stamp_ms);
+    }
+    if (hcan == &hcan1) {
+      can1.recv();
+      if (can1.frame_type) {
+        pitch_motor.read(can1.rx_id, can1.rx_data, stamp_ms);
+      }
     }
   }
 }

@@ -12,6 +12,7 @@ chassis_mode Chassis_Mode;
 gimbal_mode Last_Gimbal_Mode;
 gimbal_mode Gimbal_Mode;
 
+//¿ØÖÆÈ«¾Ö×´Ì¬
 void global_mode_control()
 {
   Last_Global_Mode = Global_Mode;

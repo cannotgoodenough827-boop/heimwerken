@@ -12,6 +12,7 @@ typedef enum
 typedef enum
 {
   CHASSIS_DOWN,
+  CHASSIS_INIT,
   CHASSIS_MOVE,
   CHASSIS_SPIN,
   CHASSIS_FOLLOW,

@@ -16,6 +16,8 @@
 #include "referee/vt03/vt03.hpp"
 #include "tools/pid/pid.hpp"
 
+//解算，并在control_task中真正执行
+
 //功率控制
 float infact_Pmax = pm02.robot_status.chassis_power_limit;
 //底盘期望前后旋转速度
@@ -26,37 +28,27 @@ Wheel_Speed chassis_target_speed = {0.0f, 0.0f, 0.0f, 0.0f};
 Wheel_Speed wheel_speed = {0.0f, 0.0f, 0.0f, 0.0f};
 //pid算出来的预期扭矩
 Wheel_Torque wheel_give_torque = {0.0f, 0.0f, 0.0f, 0.0f};
-
+//解算
 sp::Mecanum chassis(WHEEL_RADIUS, (CHASSIS_LENGTH / 2), (CHASSIS_WIDTH / 2));
+//小陀螺改变转向flag
+bool spin_revert_flag;
 
 void chassis_control();
-//chassis_follow,spin下的遥控器/键鼠对应速度
+//模式控制
 void chassis_mode_control();
+//remote控制底盘跟随
 void remote_speedcontrol_follow();
 //chassis_follow通用坐标系变至云台系+底盘跟随的函数
 void chassis_coordinate_converter(Chassis_Speed * chassis_speed_given, float yaw_angle);
+//底盘解算,待发
+void chassis_command();
 
 extern "C" void Chassis_task()
 {
   while (1) {
+    //总能量更新，还没写（）
     chassis_mode_control();
-
-    if (Chassis_Mode == CHASSIS_FOLLOW) {
-      remote_speedcontrol_follow();
-    }
-
-    chassis_coordinate_converter(&chassis_speed, yaw_relative_angle);
-    chassis.calc(chassis_speed.vx, chassis_speed.vy, chassis_speed.wz);
-    wheel_speed.lf = wheel_lf.speed;
-    wheel_speed.lr = wheel_lr.speed;
-    wheel_speed.rf = wheel_rf.speed;
-    wheel_speed.rr = wheel_rr.speed;
-
-    chassis_target_speed.lf = chassis.speed_lf;
-    chassis_target_speed.lr = chassis.speed_lr;
-    chassis_target_speed.rf = chassis.speed_rf;
-    chassis_target_speed.rr = chassis.speed_rr;
-
+    chassis_command();
     osDelay(1);
   }
 }
@@ -87,7 +79,6 @@ void remote_speedcontrol_follow()
 {
   chassis_speed.vx = REMOTE_CONTROL_V * remote.ch_lh;
   chassis_speed.vy = -REMOTE_CONTROL_V * remote.ch_lv;
-  // chassis_speed.wz = SPIN_W * remote.ch_rh;
   chassis_follow_wz_pid.calc(0.0f, yaw_relative_angle);  //底盘跟随：设为底盘与yaw轴相对角度为0
   chassis_speed.wz = -chassis_follow_wz_pid.out;
 }
@@ -100,4 +91,26 @@ void chassis_coordinate_converter(Chassis_Speed * chassis_speed_given, float yaw
   float vy = chassis_speed_given->vy;
   chassis_speed_given->vx = vx * cos(yaw_angle) - vy * sin(yaw_angle);
   chassis_speed_given->vy = vx * sin(yaw_angle) + vy * cos(yaw_angle);
+}
+
+void chassis_command()
+{
+  if (Chassis_Mode == CHASSIS_FOLLOW) {
+    remote_speedcontrol_follow();
+  }
+  if (Chassis_Mode == CHASSIS_SPIN) {
+    chassis_speed.wz = (spin_revert_flag ? -SPIN_W : SPIN_W);
+  }
+  //解算得到命令速度
+  chassis_coordinate_converter(&chassis_speed, yaw_relative_angle);
+  chassis.calc(chassis_speed.vx, chassis_speed.vy, chassis_speed.wz);
+  wheel_speed.lf = wheel_lf.speed;
+  wheel_speed.lr = wheel_lr.speed;
+  wheel_speed.rf = wheel_rf.speed;
+  wheel_speed.rr = wheel_rr.speed;
+
+  chassis_target_speed.lf = chassis.speed_lf;
+  chassis_target_speed.lr = chassis.speed_lr;
+  chassis_target_speed.rf = chassis.speed_rf;
+  chassis_target_speed.rr = chassis.speed_rr;
 }

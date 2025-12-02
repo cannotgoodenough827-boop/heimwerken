@@ -8,7 +8,7 @@ constexpr float T_CONTROL = 1e-3f;  // 控制周期, 单位: s
 inline sp::PID speed_lf_pid(0.001f, 0.3f, 0.0f, 0.0f, 5.859f, 0.5f, 0.15f);
 inline sp::PID speed_lr_pid(0.001f, 0.3f, 0.0f, 0.0f, 5.859f, 0.8f, 0.15f);
 inline sp::PID speed_rf_pid(0.001f, 0.3f, 0.0f, 0.0f, 5.859f, 0.5f, 0.15f);
-inline sp::PID speed_rr_pid(0.001f, 0.3f, 0.0f, 0.0f, 5.859f, 0.5f, 0.15f);
+inline sp::PID speed_rr_pid(0.001f, 0.3f, 0.0f, 0.0f, 5.859f, 0.5f, 0.15f);  //底盘电机速度pid
 
 //gimbal pids
 constexpr float MAX_4310_TORQUE = 10.0f;  // 达妙4310电机最大扭矩，单位N.m

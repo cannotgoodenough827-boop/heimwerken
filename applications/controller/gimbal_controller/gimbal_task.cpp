@@ -34,17 +34,18 @@ void gimbal_init();
 //云台状态选择
 void gimbal_mode_control();
 //云台电流解算
-void gimbal_cmd();
+void gimbal_command();
 
 extern "C" void gimbal_task()
 {
-  osDelay(700);  // 等待各个任务初始化完成
+  // 等待各个任务初始化完成
+  osDelay(700);
   //云台初始化
   gimbal_init();
   while (1) {
     //云台电机选择模式
     gimbal_mode_control();
-    gimbal_cmd();
+    gimbal_command();
     osDelay(1);
   }
 }
@@ -76,7 +77,7 @@ void gimbal_mode_control()
   }
 }
 
-void gimbal_cmd()
+void gimbal_command()
 {
   yaw_relative_angle = sp::limit_angle(yaw_motor.angle - yaw_offecd_ecd_angle);
 

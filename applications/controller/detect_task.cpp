@@ -14,6 +14,7 @@
 #include "stm32f4xx_hal_cortex.h"
 
 bool yaw_motor_alive = true;
+bool pitch_motor_alive = false;
 void motor_dead();
 
 extern "C" void detect_task()
@@ -28,4 +29,5 @@ void motor_dead()
 {
   auto stamp_ms = osKernelSysTick();  // 获取当前的系统时间戳（以毫秒为单位）
   yaw_motor_alive = yaw_motor.is_alive(stamp_ms);
+  pitch_motor_alive = pitch_motor.is_alive(stamp_ms);
 }

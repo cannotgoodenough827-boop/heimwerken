@@ -14,9 +14,18 @@ void chassis_send()
 
   can2.send(wheel_lf.tx_id);
 }
-
+//yaw 在CAN2上
 void yaw_send()
 {
   yaw_motor.write(can2.tx_data);
   can2.send(yaw_motor.tx_id);
+}
+
+//pitch在CAN1上
+void pitch_send()
+{
+  pitch_motor.write(can1.tx_data);
+  can1.send_ext(
+    pitch_motor.communication_type, pitch_motor.tar_torque, pitch_motor.motor_id,
+    pitch_motor.master_id);
 }

@@ -15,6 +15,8 @@
 
 bool yaw_motor_alive = true;
 bool pitch_motor_alive = false;
+//ÆÂ½Ç¶È
+float slope_angle = 0.0f;
 void motor_dead();
 
 extern "C" void detect_task()

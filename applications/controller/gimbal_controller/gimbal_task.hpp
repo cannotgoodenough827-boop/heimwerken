@@ -37,5 +37,9 @@ inline sp::CyberGear_Motor pitch_motor(
 // -------------------- ∂‘Õ‚µ˜ ‘ --------------------
 extern float yaw_target_angle;
 extern float yaw_relative_angle;
+extern float pitch_target_angle;
+extern float pitch_relative_angle;
 
+extern uint16_t gimbal_init_time;
+extern uint16_t gimbal_init_over_time;
 #endif  // GIMBAL_TASK_HPP

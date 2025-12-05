@@ -2,6 +2,7 @@
 #define _DETECT_TASK_HPP_
 #include <stdint.h>
 
+extern float slope_angle;
 extern bool yaw_motor_alive;
 extern bool pitch_motor_alive;
 

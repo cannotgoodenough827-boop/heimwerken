@@ -57,7 +57,7 @@ extern "C" void Chassis_task()
 
 void chassis_mode_control()
 {
-  if (Global_Mode == ZERO_FORCE) {
+  if (Global_Mode == ZERO_FORCE || Gimbal_Mode == GIMBAL_INIT) {
     Chassis_Mode = CHASSIS_DOWN;
   }
   else {

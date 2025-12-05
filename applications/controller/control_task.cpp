@@ -13,6 +13,10 @@
 #include "data_interfaces/uart/uart_task.hpp"
 #include "io/imu_task.hpp"
 
+//输入给yaw的扭矩
+float yaw_cmd_torque = 0.0f;
+float pitch_torque;
+float gravity_compensation;
 //达妙使能帧控制符
 uint16_t yaw_enable_num = 0;
 uint16_t pitch_enable_num = 0;
@@ -122,6 +126,7 @@ void gimbal_gyro_control()
   yaw_speed_pid.calc(yaw_pos_pid.out, imu_vyaw_filter);
   yaw_cmd_torque = sp::limit_max(yaw_speed_pid.out, MAX_4310_TORQUE);
   yaw_motor.cmd(yaw_cmd_torque);
+
   pitch_motor.cmd(0.0f);  //测试小米电机
 }
 

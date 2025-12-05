@@ -26,8 +26,6 @@ float gyro_yaw_angle_add = 0.0f;
 float gyro_pitch_angle_add = 0.0f;
 float yaw_target_angle = 0.0f;
 float pitch_target_angle = 0.0f;
-//输入给yaw的扭矩
-float yaw_cmd_torque = 0.0f;
 
 //云台初始化
 void gimbal_init();

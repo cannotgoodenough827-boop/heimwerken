@@ -16,8 +16,10 @@
 #include "referee/vt03/vt03.hpp"
 #include "tools/pid/pid.hpp"
 
-//解算，并在control_task中真正执行
-
+//底盘初始化
+bool chassis_init_flag = false;
+uint32_t chassis_init_time = 0;
+uint32_t chassis_init_over_time = 0;
 //功率控制
 float infact_Pmax = pm02.robot_status.chassis_power_limit;
 //底盘期望前后旋转速度

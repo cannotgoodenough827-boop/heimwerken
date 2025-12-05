@@ -15,7 +15,7 @@ constexpr float W_MAX = 0.004f;  //rad/ms
 
 // -------------------- 对外硬件 --------------------
 inline sp::DM_Motor yaw_motor(0x08, 0x04, 3.141593f, 30.0f, 10.0f);
-inline sp::CyberGear_Motor pitch_motor(0x07, 0x04, 3.141593f, 30.0f, 10.0f);
+inline sp::CyberGear_Motor pitch_motor(0x06, 0x00, 3.141593f, 30.0f, 10.0f);
 
 // -------------------- 对外调试 --------------------
 extern float yaw_cmd_torque;

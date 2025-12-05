@@ -43,8 +43,10 @@ extern "C" void control_task()
     yaw_error_clear();
     chassis_control();
     gimbal_control();
+    gimbal_gyro_control();  //测试小米电机
     chassis_send();
     yaw_send();
+    pitch_send();
     osDelay(1);
   }
 }
@@ -98,6 +100,9 @@ void gimbal_control()
   if (Gimbal_Mode == GIMBAL_GYRO) {
     gimbal_gyro_control();
   }
+  if (Gimbal_Mode == GIMBAL_INIT) {
+    gimbal_encode_control();
+  }
 }
 
 void gimbal_encode_control()
@@ -117,8 +122,9 @@ void gimbal_gyro_control()
   yaw_speed_pid.calc(yaw_pos_pid.out, imu_vyaw_filter);
   yaw_cmd_torque = sp::limit_max(yaw_speed_pid.out, MAX_4310_TORQUE);
   yaw_motor.cmd(yaw_cmd_torque);
-  pitch_motor.cmd(0.01f);  //测试小米电机
+  pitch_motor.cmd(0.0f);  //测试小米电机
 }
+
 //失能检测，发送使能帧
 void motor_enable(void)
 {

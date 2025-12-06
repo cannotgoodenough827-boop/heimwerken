@@ -7,10 +7,6 @@
 
 extern uint8_t shoot_mode_flag;
 
-float gyro_x_zero = -0.0062657f;
-float gyro_y_zero = -0.0010400f;
-float gyro_z_zero = -0.0008904f;
-
 const float r_ab[3][3] = {{0.0f, -1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
 
 uint8_t first_temperate;

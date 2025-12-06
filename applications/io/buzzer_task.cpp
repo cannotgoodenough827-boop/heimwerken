@@ -4,12 +4,11 @@ constexpr int MOTOR_TIMEOUT = 500;  // 电机离线时间阈值, 单位: ms
 // C板
 sp::Buzzer buzzer(&htim4, TIM_CHANNEL_3, 84e6);
 
-
 void buzzer_power_on()
 {
   buzzer.set(5000, 0.1);
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 4; i++) {
     buzzer.start();
     osDelay(100);
     buzzer.stop();
@@ -49,10 +48,10 @@ extern "C" void buzzer_task()
   buzzer_power_on();
 
   // 演示两个不同报错旋律
-  osDelay(1000);
-  buzzer_error1();  // 模拟错误1
-  osDelay(1000);
-  buzzer_error2();  // 模拟错误2
+  // osDelay(1000);
+  // buzzer_error1();  // 模拟错误1
+  // osDelay(1000);
+  // buzzer_error2();  // 模拟错误2
   while (1) {
     osDelay(10);
   }

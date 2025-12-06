@@ -49,6 +49,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     applications/io/led_task.cpp
     applications/io/servo_task.cpp
     applications/io/imu_task.cpp
+    applications/io/calibrate_task.cpp
     applications/controller/chassis_controller/chassis_task.cpp
     applications/controller/control_task.cpp
     applications/controller/mode.cpp
@@ -72,6 +73,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     sp_middleware/io/can/can.cpp
     sp_middleware/io/plotter/plotter.cpp
     sp_middleware/io/bmi088/bmi088.cpp
+    
 
     sp_middleware/motor/rm_motor/rm_motor.cpp
     sp_middleware/motor/dm_motor/dm_motor.cpp

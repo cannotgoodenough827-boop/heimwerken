@@ -1,6 +1,7 @@
 #ifndef IMU_TASK_HPP
 #define IMU_TASK_HPP
 #include "HERO_SELECTION.hpp"
+#include "calibrate_task.hpp"
 #include "io/bmi088/bmi088.hpp"
 #include "io/vision/vision.hpp"
 #include "stdint.h"

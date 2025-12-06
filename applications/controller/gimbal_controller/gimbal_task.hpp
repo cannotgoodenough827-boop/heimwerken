@@ -26,13 +26,17 @@ constexpr float TOR_PARAM = 1.1f;
 // 重心偏角
 constexpr float OFFSET_ANGLE = 0.0f;  // rad
 #endif
+#ifdef HERO_THREE_WHEELS
+constexpr float TOR_PARAM = 1.4517f;
+//重心偏角
+constexpr float OFFSET_ANGLE = 0.0f;  // rad
+#endif
 
 // -------------------- 对外硬件 --------------------
 inline sp::DM_Motor yaw_motor(0x08, 0x04, 3.141593f, 30.0f, 10.0f);
-//0x06 0x00
+//气动0x06 0x00
 inline sp::CyberGear_Motor pitch_motor(
-  Master_CAN_ID, CyberGear_CAN_ID, CYBERGEAR_MAX_POSITION, CYBERGEAR_MAX_SPEED,
-  CYBERGEAR_MAX_TORQUE);
+  0x00, 0x01, CYBERGEAR_MAX_POSITION, CYBERGEAR_MAX_SPEED, CYBERGEAR_MAX_TORQUE);
 
 // -------------------- 对外调试 --------------------
 extern float yaw_target_angle;

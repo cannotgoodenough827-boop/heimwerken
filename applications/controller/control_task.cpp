@@ -121,7 +121,7 @@ void gimbal_encode_control()
   pitch_encode_pos_pid.calc(pitch_target_angle, pitch_relative_angle);
   pitch_encode_speed_pid.calc(pitch_encode_pos_pid.out, imu_vpitch_filter);
   gravity_compensation = cos(OFFSET_ANGLE + imu.pitch) * TOR_PARAM;
-  pitch_torque = pitch_encode_speed_pid.out + gravity_compensation;
+  pitch_torque = pitch_encode_speed_pid.out;  //+ gravity_compensation
   pitch_motor.cmd(pitch_torque);
 }
 
@@ -134,9 +134,10 @@ void gimbal_gyro_control()
   yaw_cmd_torque = sp::limit_max(yaw_speed_pid.out, MAX_4310_TORQUE);
   yaw_motor.cmd(yaw_cmd_torque);
   //pitch
-  pitch_pos_pid.calc(pitch_target_angle, imu.pitch);
+  pitch_pos_pid.calc(pitch_target_angle, imu.pitch);  //test
   pitch_speed_pid.calc(pitch_pos_pid.out, imu_vpitch_filter);
-  pitch_torque = pitch_speed_pid.out;
+  gravity_compensation = cos(OFFSET_ANGLE + imu.pitch) * TOR_PARAM;
+  pitch_torque = pitch_speed_pid.out + gravity_compensation;
   pitch_motor.cmd(pitch_torque);  //测试小米电机
 }
 

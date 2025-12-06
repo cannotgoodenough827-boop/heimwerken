@@ -56,6 +56,7 @@ osThreadId ControlTaskHandle;
 osThreadId gimbalTaskHandle;
 osThreadId imuTaskHandle;
 osThreadId detecttaskHandle;
+osThreadId CalibrateTaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -71,6 +72,7 @@ void control_task(void const * argument);
 void gimbal_task(void const * argument);
 void IMU_task(void const * argument);
 void detect_task(void const * argument);
+void calibrate_task(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -153,6 +155,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of detecttask */
   osThreadDef(detecttask, detect_task, osPriorityNormal, 0, 128);
   detecttaskHandle = osThreadCreate(osThread(detecttask), NULL);
+
+  /* definition and creation of CalibrateTask */
+  osThreadDef(CalibrateTask, calibrate_task, osPriorityBelowNormal, 0, 128);
+  CalibrateTaskHandle = osThreadCreate(osThread(CalibrateTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -322,6 +328,24 @@ __weak void detect_task(void const * argument)
     osDelay(1);
   }
   /* USER CODE END detect_task */
+}
+
+/* USER CODE BEGIN Header_calibrate_task */
+/**
+* @brief Function implementing the CalibrateTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_calibrate_task */
+__weak void calibrate_task(void const * argument)
+{
+  /* USER CODE BEGIN calibrate_task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END calibrate_task */
 }
 
 /* Private application code --------------------------------------------------*/

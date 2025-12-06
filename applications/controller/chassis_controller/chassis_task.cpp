@@ -1,6 +1,7 @@
 #include "chassis_task.hpp"
 
 #include "cmsis_os.h"
+#include "controller/detect_task.hpp"
 #include "controller/gimbal_controller/gimbal_task.hpp"
 #include "controller/mode.hpp"
 #include "controller/pids.hpp"
@@ -50,6 +51,18 @@ extern "C" void Chassis_task()
   while (1) {
     //总能量更新，还没写（）
     chassis_mode_control();
+    
+    if (chassis_init_flag) {
+      if (chassis_alive) {
+        chassis_init_over_time++;
+      }
+      chassis_init_time++;
+      if (chassis_init_over_time == 100 || chassis_init_time == 7000) {
+        chassis_init_over_time = 0;
+        chassis_init_time = 0;
+        chassis_init_flag = false;
+      }
+    }
     chassis_command();
     osDelay(1);
   }
@@ -57,6 +70,11 @@ extern "C" void Chassis_task()
 
 void chassis_mode_control()
 {
+  //底盘初始化优先级最高
+  if (chassis_init_flag) {
+    Chassis_Mode = CHASSIS_INIT;
+    return;
+  }
   if (Global_Mode == ZERO_FORCE || Gimbal_Mode == GIMBAL_INIT) {
     Chassis_Mode = CHASSIS_DOWN;
   }

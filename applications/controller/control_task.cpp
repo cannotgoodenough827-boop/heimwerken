@@ -47,7 +47,6 @@ extern "C" void control_task()
     yaw_error_clear();
     chassis_control();
     gimbal_control();
-    gimbal_gyro_control();  //测试小米电机
     chassis_send();
     yaw_send();
     pitch_send();

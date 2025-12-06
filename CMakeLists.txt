@@ -56,6 +56,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     applications/controller/power_control.cpp
     applications/controller/gimbal_controller/gimbal_task.cpp
     applications/controller/detect_task.cpp
+    applications/controller/shoot_controller/shoot_task.cpp
 
     
     applications/data_interfaces/can/can_recv.cpp

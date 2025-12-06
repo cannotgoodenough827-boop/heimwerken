@@ -15,6 +15,8 @@
 
 bool yaw_motor_alive = true;
 bool pitch_motor_alive = false;
+bool chassis_alive = true;
+bool gimbal_alive = true;
 //坡角度
 float slope_angle = 0.0f;
 void motor_dead();
@@ -32,4 +34,7 @@ void motor_dead()
   auto stamp_ms = osKernelSysTick();  // 获取当前的系统时间戳（以毫秒为单位）
   yaw_motor_alive = yaw_motor.is_alive(stamp_ms);
   pitch_motor_alive = pitch_motor.is_alive(stamp_ms);
+  chassis_alive = wheel_lf.is_alive(stamp_ms) && wheel_lr.is_alive(stamp_ms) &&
+                  wheel_rf.is_alive(stamp_ms) && wheel_rr.is_alive(stamp_ms);
+  gimbal_alive = yaw_motor.is_alive(stamp_ms) && pitch_motor.is_alive(stamp_ms);
 }

@@ -59,7 +59,7 @@ extern "C" void gimbal_task()
 void gimbal_init()
 {
 #ifdef HERO_DOG
-  yaw_offecd_ecd_angle = -0.53349f;
+  yaw_offecd_ecd_angle = 2.3814f;
   pitch_offecd_ecd_angle = 0.62146f;
 #endif
 #ifdef HERO_THREE_WHEELS
@@ -135,8 +135,10 @@ void gimbal_command()
 
     //判断初始化完成
     if (gimbal_init_time == 1000 || gimbal_init_over_time == 500) {
-      yaw_target_angle = imu.yaw;
-      pitch_target_angle = imu.pitch;
+      // yaw_target_angle = imu.yaw;
+      // pitch_target_angle = imu.pitch;
+      yaw_target_angle = yaw_relative_angle;
+      pitch_target_angle = pitch_relative_angle;
       gimbal_init_over_time = 0;
       gimbal_init_time = 0;
       gimbal_init_flag = false;

@@ -5,6 +5,7 @@
 #include "controller/gimbal_controller/gimbal_task.hpp"
 #include "controller/mode.hpp"
 #include "controller/pids.hpp"
+#include "controller/power_control.hpp"
 #include "data_interfaces/can/can.hpp"
 #include "data_interfaces/can/can_recv.hpp"
 #include "data_interfaces/uart/uart_task.hpp"
@@ -23,6 +24,8 @@ uint32_t chassis_init_time = 0;
 uint32_t chassis_init_over_time = 0;
 //功率控制
 float infact_Pmax = pm02.robot_status.chassis_power_limit;
+//低压放电保护 0：电压低不可使用电容  1：可使用电容
+uint8_t low_vol_flag = 1;
 //底盘期望前后旋转速度
 Chassis_Speed chassis_speed = {0.0f, 0.0f, 0.0f};
 //经过偏移修正之后的轮子目标速度
@@ -51,7 +54,7 @@ extern "C" void Chassis_task()
   while (1) {
     //总能量更新，还没写（）
     chassis_mode_control();
-    
+
     if (chassis_init_flag) {
       if (chassis_alive) {
         chassis_init_over_time++;
@@ -63,6 +66,9 @@ extern "C" void Chassis_task()
         chassis_init_flag = false;
       }
     }
+
+    //底盘逆运动学，由四轮速度求解底盘速度
+    chassis.update(wheel_lf.speed, wheel_lr.speed, wheel_rf.speed, wheel_rr.speed);
     chassis_command();
     osDelay(1);
   }
@@ -78,6 +84,7 @@ void chassis_mode_control()
   if (Global_Mode == ZERO_FORCE || Gimbal_Mode == GIMBAL_INIT) {
     Chassis_Mode = CHASSIS_DOWN;
   }
+
   else {
 #ifdef DT7
     if (Global_Mode == REMOTE) {
@@ -97,8 +104,12 @@ void chassis_mode_control()
 
 void remote_speedcontrol_follow()
 {
-  chassis_speed.vx = REMOTE_CONTROL_V * remote.ch_lh;
-  chassis_speed.vy = -REMOTE_CONTROL_V * remote.ch_lv;
+  chassis_speed.vx = REMOTE_CONTROL_V * remote.ch_lv;
+  chassis_speed.vy = -REMOTE_CONTROL_V * remote.ch_lh;
+  //底盘跟随角速度
+  //平滑控制底盘跟随，解决启停扭动问题
+  yaw_relative_angle_filter.update(yaw_relative_angle);
+  yaw_relative_angle = yaw_relative_angle_filter.out;
   chassis_follow_wz_pid.calc(0.0f, yaw_relative_angle);  //底盘跟随：设为底盘与yaw轴相对角度为0
   chassis_speed.wz = -chassis_follow_wz_pid.out;
 }
@@ -121,6 +132,11 @@ void chassis_command()
   if (Chassis_Mode == CHASSIS_SPIN) {
     chassis_speed.wz = (spin_revert_flag ? -SPIN_W : SPIN_W);
   }
+  else if (Chassis_Mode == CHASSIS_DOWN) {
+    chassis_speed.vx = 0;
+    chassis_speed.vy = 0;
+    chassis_speed.wz = 0;  //期望速度清零
+  }
   //解算得到命令速度
   chassis_coordinate_converter(&chassis_speed, yaw_relative_angle);
   chassis.calc(chassis_speed.vx, chassis_speed.vy, chassis_speed.wz);
@@ -133,4 +149,48 @@ void chassis_command()
   chassis_target_speed.lr = chassis.speed_lr;
   chassis_target_speed.rf = chassis.speed_rf;
   chassis_target_speed.rr = chassis.speed_rr;
+}
+
+//根据剩余能量和电容情况确定最大功率
+void Pmax_get()
+{
+#ifdef RMUC
+  //电容低电保护
+  if (low_vol_flag == 0 && super_cap.voltage >= 11.2) {
+    low_vol_flag = 1;
+  }
+  if (low_vol_flag == 1 && super_cap.voltage < 6.2) {
+    low_vol_flag = 0;
+  }
+  //剩余能量大于30%时 01111B = 16D
+  if (pm02.buff.remaining_energy > 16) {
+    infact_Pmax = pm02.robot_status.chassis_power_limit;
+  }
+  else {
+    //剩余能量不足时限制最大功率为80W
+
+    if (pm02.robot_status.chassis_power_limit > 80.0f) {
+      infact_Pmax = 80.0f;
+    }
+
+    //根据电容的电压大小增加额外功率
+    if (super_cap.voltage >= 6 && low_vol_flag == 1) {
+      infact_Pmax = std::min(
+        CAP_MAX_POWER, (super_cap.voltage - 6.0f) * 20 + pm02.robot_status.chassis_power_limit);
+    }
+    else {
+      infact_Pmax = pm02.robot_status.chassis_power_limit;
+    }
+  }
+
+#endif
+  buff_energy_p_limited();
+}
+
+void buff_energy_p_limited()
+{
+  if (pm02.power_heat.buffer_energy < 20.0f) {
+    //infact_Pmax 确定原则：x<45/3(对抗赛的一级功率/3：虚弱时最小功率限制)；x-3(后面留的余量)>K3，防止功率控制无解
+    infact_Pmax = K3 + 4.0f;
+  }
 }

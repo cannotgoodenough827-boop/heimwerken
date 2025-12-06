@@ -65,12 +65,14 @@ void chassis_control()
   chassis_calculation_send();
 }
 
+//包含功率控制
 void chassis_calculation_send()
 {
   //计算预期扭矩
   wheel_give_torque = chassis_pid_cal(
     chassis_target_speed.lf, chassis_target_speed.lr, chassis_target_speed.rf,
     chassis_target_speed.rr);
+  Pmax_get();
   chassis_power_control(
     &wheel_give_torque, &wheel_speed, &chassis_target_speed, infact_Pmax - 3.0f);
   wheel_lf.cmd(wheel_give_torque.lf);
@@ -136,8 +138,8 @@ void gimbal_gyro_control()
   pitch_pos_pid.calc(pitch_target_angle, imu.pitch);  //test pitch_target_angle
   pitch_speed_pid.calc(pitch_pos_pid.out, imu_vpitch_filter);
   gravity_compensation = cos(OFFSET_ANGLE + imu.pitch) * TOR_PARAM;
-  pitch_torque = pitch_speed_pid.out+ gravity_compensation;  //+ gravity_compensation;
-  pitch_motor.cmd(pitch_torque);       //测试小米电机
+  pitch_torque = pitch_speed_pid.out + gravity_compensation;  //+ gravity_compensation;
+  pitch_motor.cmd(pitch_torque);                              //测试小米电机
 }
 
 //失能检测，发送使能帧

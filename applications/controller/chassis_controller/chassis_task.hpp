@@ -8,9 +8,16 @@
 #include "tools/mecanum/mecanum.hpp"
 #include "tools/pid/pid.hpp"
 
+//根据剩余能量和电容情况确定最大功率
+void Pmax_get();
+//基于缓冲能量的功率控制
+void buff_energy_p_limited();
+
 // -------------------- 控制参数 --------------------
 constexpr float T_CHASSIS = 1e-3f;  // 控制周期, 单位: s
 //底盘
+constexpr float CAP_MAX_POWER = 400.0f;  //16V时电容最大放电功率
+//电容最大放电功率=25*电压
 constexpr float WHEEL_RADIUS = 77e-3f;       // m
 constexpr float CHASSIS_LENGTH = 396.2e-3f;  // m
 constexpr float CHASSIS_WIDTH = 356.47e-3f;  // m
@@ -22,6 +29,8 @@ inline sp::RM_Motor wheel_lf(1, sp::RM_Motors::M3508, RADUCTION_RATIO);  // left
 inline sp::RM_Motor wheel_lr(4, sp::RM_Motors::M3508, RADUCTION_RATIO);  // left rear
 inline sp::RM_Motor wheel_rf(2, sp::RM_Motors::M3508, RADUCTION_RATIO);  // right front
 inline sp::RM_Motor wheel_rr(3, sp::RM_Motors::M3508, RADUCTION_RATIO);  // right rear
+
+inline sp::LowPassFilter yaw_relative_angle_filter(0.01f);
 
 // inline sp::PID chassis_follow_wz_pid(0.001f, 8.5f, 0.0f, 0.7f, 5.0f, 3.0f, 0.5f);
 

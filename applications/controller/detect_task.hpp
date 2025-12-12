@@ -6,5 +6,6 @@ extern float slope_angle;
 extern bool yaw_motor_alive;
 extern bool pitch_motor_alive;
 extern bool chassis_alive;
+extern bool trigger_motor_alive;
 
 #endif  // _DETECT_TASK_HPP_

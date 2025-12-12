@@ -5,6 +5,7 @@
 #include "cmsis_os.h"
 #include "controller/chassis_controller/chassis_task.hpp"
 #include "controller/gimbal_controller/gimbal_task.hpp"
+#include "controller/shoot_controller/shoot_task.hpp"
 
 extern "C" {
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan)
@@ -21,6 +22,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan)
         wheel_rf.read(can2.rx_data, stamp_ms);
       else if (can2.rx_id == wheel_rr.rx_id)
         wheel_rr.read(can2.rx_data, stamp_ms);
+      else if (can2.rx_id == trigger_motor.rx_id)
+        trigger_motor.read(can2.rx_data, stamp_ms);
       else if (can2.rx_id == yaw_motor.rx_id)
         yaw_motor.read(can2.rx_data, stamp_ms);
     }

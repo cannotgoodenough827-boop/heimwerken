@@ -8,6 +8,7 @@
 #include "controller/mode.hpp"
 #include "controller/pids.hpp"
 #include "controller/power_control.hpp"
+#include "controller/shoot_controller/shoot_task.hpp"
 #include "data_interfaces/can/can.hpp"
 #include "data_interfaces/can/can_recv.hpp"
 #include "data_interfaces/uart/uart_task.hpp"
@@ -20,6 +21,7 @@ float gravity_compensation;
 //达妙使能帧控制符
 uint16_t yaw_enable_num = 0;
 uint16_t pitch_enable_num = 0;
+uint16_t trigger_enable_num = 0;
 
 void motor_enable();
 void chassis_control();
@@ -30,6 +32,7 @@ void yaw_init();
 void pitch_init();
 void yaw_error_clear();
 void chassis_calculation_send();
+void trigger_init();
 Wheel_Torque chassis_pid_cal(float lf, float lr, float rf, float rr);
 
 extern "C" void control_task()
@@ -39,7 +42,8 @@ extern "C" void control_task()
   can1.start();
   can2.config();
   can2.start();
-  yaw_init();  //使能
+  yaw_init();      //使能
+  trigger_init();  //使能
   pitch_init();
   while (1) {
     global_mode_control();
@@ -160,6 +164,14 @@ void motor_enable(void)
     }
     yaw_enable_num++;
   }
+  if (!trigger_motor_alive) {
+    if (trigger_enable_num == 1000) {
+      trigger_motor.write_enable(can2.tx_data);
+      can2.send(yaw_motor.tx_id);
+      trigger_enable_num = 0;
+    }
+    trigger_enable_num++;
+  }
   //初次使能电机会进入Reset模式，需要再次使能设定为Motor模式
   if (!pitch_motor_alive || pitch_motor.mode != 2) {
     if (pitch_enable_num == 1000) {
@@ -185,6 +197,12 @@ void yaw_init()
 {
   yaw_motor.write_enable(can2.tx_data);
   can2.send(yaw_motor.tx_id);
+}
+
+void trigger_init()
+{
+  trigger_motor.write_enable(can2.tx_data);
+  can2.send(trigger_motor.tx_id);
 }
 
 void yaw_error_clear()

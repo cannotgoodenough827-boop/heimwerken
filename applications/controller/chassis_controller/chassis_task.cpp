@@ -127,7 +127,9 @@ void chassis_coordinate_converter(Chassis_Speed * chassis_speed_given, float yaw
 void chassis_command()
 {
   if (Chassis_Mode == CHASSIS_FOLLOW) {
-    remote_speedcontrol_follow();
+    if (Global_Mode == REMOTE) {
+      remote_speedcontrol_follow();
+    }
   }
   if (Chassis_Mode == CHASSIS_SPIN) {
     chassis_speed.wz = (spin_revert_flag ? -SPIN_W : SPIN_W);

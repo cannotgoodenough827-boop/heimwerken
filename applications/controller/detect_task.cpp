@@ -15,6 +15,7 @@
 
 bool yaw_motor_alive = true;
 bool pitch_motor_alive = false;
+bool trigger_motor_alive = false;
 bool chassis_alive = true;
 bool gimbal_alive = true;
 //ÆÂ½Ç¶È

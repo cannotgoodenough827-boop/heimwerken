@@ -29,7 +29,15 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan)
     }
     if (hcan == &hcan1) {
       can1.recv();
-      if (can1.frame_type) {
+      if (!can1.frame_type) {
+        if (can1.rx_id == fric_motor1.rx_id) {
+          fric_motor1.read(can1.rx_data, stamp_ms);
+        }
+        else if (can1.rx_id == fric_motor2.rx_id) {
+          fric_motor2.read(can1.rx_data, stamp_ms);
+        }
+      }
+      else if (can1.frame_type) {
         pitch_motor.read(can1.rx_id, can1.rx_data, stamp_ms);
       }
     }

@@ -137,8 +137,6 @@ void gimbal_command()
     if (gimbal_init_time == 1000 || gimbal_init_over_time == 500) {
       yaw_target_angle = imu.yaw;
       pitch_target_angle = imu.pitch;
-      // yaw_target_angle = yaw_relative_angle;
-      // pitch_target_angle = pitch_relative_angle;
       gimbal_init_over_time = 0;
       gimbal_init_time = 0;
       gimbal_init_flag = false;

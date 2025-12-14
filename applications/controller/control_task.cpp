@@ -66,7 +66,9 @@ void chassis_control()
     wheel_rf.cmd(0.0f);
     wheel_rr.cmd(0.0f);
   }
-  chassis_calculation_send();
+  else {
+    chassis_calculation_send();
+  }
 }
 
 //包含功率控制

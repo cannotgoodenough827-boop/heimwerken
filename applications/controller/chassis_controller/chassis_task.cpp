@@ -134,11 +134,7 @@ void chassis_command()
   if (Chassis_Mode == CHASSIS_SPIN) {
     chassis_speed.wz = (spin_revert_flag ? -SPIN_W : SPIN_W);
   }
-  else if (Chassis_Mode == CHASSIS_DOWN) {
-    chassis_speed.vx = 0;
-    chassis_speed.vy = 0;
-    chassis_speed.wz = 0;  //期望速度清零
-  }
+  
   //解算得到命令速度
   chassis_coordinate_converter(&chassis_speed, yaw_relative_angle);
   chassis.calc(chassis_speed.vx, chassis_speed.vy, chassis_speed.wz);

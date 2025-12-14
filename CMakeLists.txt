@@ -58,6 +58,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     applications/controller/gimbal_controller/gimbal_task.cpp
     applications/controller/detect_task.cpp
     applications/controller/shoot_controller/shoot_task.cpp
+    applications/controller/keys.cpp
 
     
     applications/data_interfaces/can/can_recv.cpp
@@ -84,6 +85,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     sp_middleware/tools/mahony/mahony.cpp
     sp_middleware/tools/low_pass_filter/low_pass_filter.cpp
     sp_middleware/referee/pm02/pm02.cpp 
+    sp_middleware/referee/vt03/vt03.cpp
     sp_middleware/tools/crc/crc.cpp 
 )
 
